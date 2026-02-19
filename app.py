@@ -21,9 +21,28 @@ def save_users(users):
 
 
 def normalize_phone(phone):
-    phone = phone.strip().replace(" ", "")
-    phone = phone.replace("+91", "")
-    return phone
+    # Keep only digits and take last 10 numbers
+    return ''.join(filter(str.isdigit, phone))[-10:]
+
+
+def normalize_time(t):
+    t = t.strip()
+    if len(t) > 5:
+        return t[:5]
+    return t
+
+
+def normalize_dob(dob):
+    dob = dob.strip()
+
+    # If DD/MM/YYYY convert to YYYY-MM-DD
+    if "/" in dob:
+        parts = dob.split("/")
+        if len(parts) == 3:
+            day, month, year = parts
+            return f"{year}-{month}-{day}"
+
+    return dob
 
 
 # ---------- Routes ----------
@@ -38,8 +57,8 @@ def login():
 
     name3 = request.form["name3"].strip().upper()
     surname3 = request.form["surname3"].strip().upper()
-    dob = request.form["dob"].strip()  # captured but NOT validated
-    birthtime = request.form["birthtime"].strip()
+    dob = normalize_dob(request.form["dob"])  # captured but optional
+    birthtime = normalize_time(request.form["birthtime"])
     birthplace = request.form["birthplace"].strip().lower()
     phone = normalize_phone(request.form["phone"])
 
@@ -48,12 +67,14 @@ def login():
     for user in users:
 
         user_phone = normalize_phone(user.get("phone", ""))
+        user_time = normalize_time(user.get("birthtime", ""))
+        user_place = user.get("birthplace", "").lower()
 
         if (
             user.get("name3", "").upper() == name3 and
             user.get("surname3", "").upper() == surname3 and
-            user.get("birthtime", "") == birthtime and
-            user.get("birthplace", "").lower() == birthplace and
+            user_time == birthtime and
+            user_place == birthplace and
             user_phone == phone
         ):
 
