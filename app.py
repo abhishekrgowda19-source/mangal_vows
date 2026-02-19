@@ -6,7 +6,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "mangal_secret_key")
 
 
-# Load users safely
+# ---------- Utility Functions ----------
+
 def load_users():
     if not os.path.exists("users.json"):
         return []
@@ -19,6 +20,27 @@ def save_users(users):
         json.dump(users, file, indent=4)
 
 
+def normalize_dob(dob):
+    dob = dob.strip()
+
+    # If format is DD/MM/YYYY (mobile sometimes sends this)
+    if "/" in dob:
+        parts = dob.split("/")
+        if len(parts) == 3:
+            day, month, year = parts
+            return f"{year}-{month}-{day}"
+
+    return dob
+
+
+def normalize_phone(phone):
+    phone = phone.strip().replace(" ", "")
+    phone = phone.replace("+91", "")
+    return phone
+
+
+# ---------- Routes ----------
+
 @app.route("/")
 def home():
     return render_template("login.html")
@@ -27,27 +49,32 @@ def home():
 @app.route("/login", methods=["POST"])
 def login():
 
-    name3 = request.form["name3"].upper()
-    surname3 = request.form["surname3"].upper()
-    dob = request.form["dob"].strip()
-    birthtime = request.form["birthtime"]
-    birthplace = request.form["birthplace"]
-    phone = request.form["phone"]
+    name3 = request.form["name3"].strip().upper()
+    surname3 = request.form["surname3"].strip().upper()
+    dob = normalize_dob(request.form["dob"])
+    birthtime = request.form["birthtime"].strip()
+    birthplace = request.form["birthplace"].strip().lower()
+    phone = normalize_phone(request.form["phone"])
 
     users = load_users()
 
     for user in users:
-        if (user["name3"] == name3 and
-            user["surname3"] == surname3 and
-            user["dob"] == dob and
-            user["birthtime"] == birthtime and
-            user["birthplace"].lower() == birthplace.lower() and
-            user["phone"] == phone):
 
-            session["user"] = phone
+        user_phone = normalize_phone(user.get("phone", ""))
 
-            # Check subscription
-            if user.get("subscription_active"):
+        if (
+            user.get("name3", "").upper() == name3 and
+            user.get("surname3", "").upper() == surname3 and
+            user.get("dob", "") == dob and
+            user.get("birthtime", "") == birthtime and
+            user.get("birthplace", "").lower() == birthplace and
+            user_phone == phone
+        ):
+
+            session["user"] = user_phone
+
+            # Check subscription status
+            if user.get("subscription_active", False):
                 return redirect(url_for("dashboard"))
             else:
                 return redirect(url_for("subscribe"))
@@ -71,7 +98,7 @@ def activate():
     users = load_users()
 
     for user in users:
-        if user["phone"] == session["user"]:
+        if normalize_phone(user.get("phone", "")) == session["user"]:
             user["subscription_active"] = True
             break
 
@@ -92,6 +119,8 @@ def logout():
     session.clear()
     return redirect(url_for("home"))
 
+
+# ---------- Run Server ----------
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
