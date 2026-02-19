@@ -29,7 +29,7 @@ def login():
 
     name3 = request.form["name3"].upper()
     surname3 = request.form["surname3"].upper()
-    dob = request.form["dob"]
+    dob = request.form["dob"].strip()
     birthtime = request.form["birthtime"]
     birthplace = request.form["birthplace"]
     phone = request.form["phone"]
