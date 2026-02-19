@@ -28,7 +28,7 @@
 
     <form method="POST" action="/login">
 
-        <!-- 1. User Identifier -->
+        <!-- User Identifier -->
         <div class="row">
             <label>User Identifier</label>
             <div class="double-input">
@@ -37,13 +37,13 @@
             </div>
         </div>
 
-        <!-- 2. Date of Birth -->
+        <!-- Date of Birth -->
         <div class="row">
             <label>Date of Birth</label>
-            <input type="date" name="dob" required>
+            <input type="date" name="dob">
         </div>
 
-        <!-- 3. Birth Details -->
+        <!-- Birth Details -->
         <div class="row">
             <label>Birth Details</label>
             <div class="double-input">
@@ -52,16 +52,16 @@
             </div>
         </div>
 
-        <!-- 4. Mobile Number -->
+        <!-- Mobile Number -->
         <div class="row">
             <label>Mobile Number</label>
             <div class="mobile-input">
                 <span class="country-code">+91</span>
-                <input type="text" name="phone" placeholder="000-000-0000" required>
+                <input type="tel" name="phone" placeholder="9876543210" required>
             </div>
         </div>
 
-        <button class="secure-btn">
+        <button type="submit" class="secure-btn">
             🔒 PROCEED TO SECURE LOGIN
         </button>
 
