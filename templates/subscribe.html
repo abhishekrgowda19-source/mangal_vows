@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Activate Subscription</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="background-animation"></div>
+
+<div class="portal-card">
+
+    <h2>Subscription Required</h2>
+
+    <div class="subscription-box">
+        <h3>Premium Access Plan</h3>
+        <p class="price">₹500</p>
+        <p>Valid for 30 Days</p>
+        <p>Access to search, filters & AI matches</p>
+    </div>
+
+    <form method="POST" action="/activate">
+        <button class="secure-btn">Pay ₹500 & Continue</button>
+    </form>
+
+</div>
+
+</body>
+</html>
