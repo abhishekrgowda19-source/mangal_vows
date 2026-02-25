@@ -72,7 +72,6 @@ def login():
 
         if (
             user.get("name3", "").upper() == name3 and
-            user.get("surname3", "").upper() == surname3 and
             user_time == birthtime and
             user_place == birthplace and
             user_phone == phone
