@@ -21,7 +21,6 @@ def save_users(users):
 
 
 def normalize_phone(phone):
-    # Keep only digits and take last 10 numbers
     return ''.join(filter(str.isdigit, phone))[-10:]
 
 
@@ -30,19 +29,6 @@ def normalize_time(t):
     if len(t) > 5:
         return t[:5]
     return t
-
-
-def normalize_dob(dob):
-    dob = dob.strip()
-
-    # If DD/MM/YYYY convert to YYYY-MM-DD
-    if "/" in dob:
-        parts = dob.split("/")
-        if len(parts) == 3:
-            day, month, year = parts
-            return f"{year}-{month}-{day}"
-
-    return dob
 
 
 # ---------- Routes ----------
@@ -56,8 +42,7 @@ def home():
 def login():
 
     name3 = request.form["name3"].strip().upper()
-    surname3 = request.form["surname3"].strip().upper()
-    dob = normalize_dob(request.form["dob"])  # captured but optional
+    dob = request.form["dob"]  # captured but NOT validated
     birthtime = normalize_time(request.form["birthtime"])
     birthplace = request.form["birthplace"].strip().lower()
     phone = normalize_phone(request.form["phone"])
@@ -124,8 +109,6 @@ def logout():
     session.clear()
     return redirect(url_for("home"))
 
-
-# ---------- Run Server ----------
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
