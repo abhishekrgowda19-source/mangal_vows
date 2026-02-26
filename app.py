@@ -1,37 +1,43 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import json
+from flask_sqlalchemy import SQLAlchemy
 import os
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
+
 app.secret_key = os.environ.get("SECRET_KEY", "mangal_secret_key")
 
+# Database configuration
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+    "DATABASE_URL",
+    "postgresql://mangal_vows_db_user:x32SdxXBh5upKZTQJemVVFbWWpFGQDSg@dpg-d6fsuo8gjchc73d3631g-a/mangal_vows_db"
+)
 
-# ---------- Utility Functions ----------
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-def load_users():
-    if not os.path.exists("users.json"):
-        return []
-    with open("users.json", "r") as file:
-        return json.load(file)
+db = SQLAlchemy(app)
 
 
-def save_users(users):
-    with open("users.json", "w") as file:
-        json.dump(users, file, indent=4)
+# --------- Database Model ---------
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name3 = db.Column(db.String(10))
+    surname3 = db.Column(db.String(10))
+    birthtime = db.Column(db.String(10))
+    birthplace = db.Column(db.String(100))
+    phone = db.Column(db.String(20), unique=True)
+    subscription_active = db.Column(db.Boolean, default=False)
+    subscription_expiry = db.Column(db.DateTime, nullable=True)
+
+
+# --------- Utility ---------
 
 def normalize_phone(phone):
     return ''.join(filter(str.isdigit, phone))[-10:]
 
 
-def normalize_time(t):
-    t = t.strip()
-    if len(t) > 5:
-        return t[:5]
-    return t
-
-
-# ---------- Routes ----------
+# --------- Routes ---------
 
 @app.route("/")
 def home():
@@ -42,32 +48,23 @@ def home():
 def login():
 
     name3 = request.form["name3"].strip().upper()
-    dob = request.form["dob"]  # captured but NOT validated
-    birthtime = normalize_time(request.form["birthtime"])
+    birthtime = request.form["birthtime"].strip()
     birthplace = request.form["birthplace"].strip().lower()
     phone = normalize_phone(request.form["phone"])
 
-    users = load_users()
+    user = User.query.filter_by(phone=phone).first()
 
-    for user in users:
+    if user and \
+       user.name3.upper() == name3 and \
+       user.birthtime == birthtime and \
+       user.birthplace.lower() == birthplace:
 
-        user_phone = normalize_phone(user.get("phone", ""))
-        user_time = normalize_time(user.get("birthtime", ""))
-        user_place = user.get("birthplace", "").lower()
+        session["user"] = user.phone
 
-        if (
-            user.get("name3", "").upper() == name3 and
-            user_time == birthtime and
-            user_place == birthplace and
-            user_phone == phone
-        ):
-
-            session["user"] = user_phone
-
-            if user.get("subscription_active", False):
-                return redirect(url_for("dashboard"))
-            else:
-                return redirect(url_for("subscribe"))
+        if user.subscription_active and user.subscription_expiry and user.subscription_expiry > datetime.utcnow():
+            return redirect(url_for("dashboard"))
+        else:
+            return redirect(url_for("subscribe"))
 
     return "Invalid Credentials"
 
@@ -85,14 +82,12 @@ def activate():
     if "user" not in session:
         return redirect(url_for("home"))
 
-    users = load_users()
+    user = User.query.filter_by(phone=session["user"]).first()
 
-    for user in users:
-        if normalize_phone(user.get("phone", "")) == session["user"]:
-            user["subscription_active"] = True
-            break
-
-    save_users(users)
+    if user:
+        user.subscription_active = True
+        user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
+        db.session.commit()
 
     return redirect(url_for("dashboard"))
 
@@ -111,5 +106,7 @@ def logout():
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
