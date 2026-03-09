@@ -1,11 +1,34 @@
 [
-    {
-        "name3": "ABI",
-        "surname3": "RGO",
-        "dob": "2002-08-14",
-        "birthtime": "09:30",
-        "birthplace": "Bangalore",
-        "phone": "9876543250",
-        "subscription_active": false
-    }
+    
+{
+"name3": "ABI",
+"birthtime": "10:30",
+"birthplace": "mysore",
+"phone": "9876543210",
+"subscription_active": false
+},
+
+{
+"name3": "RAJ",
+"birthtime": "09:15",
+"birthplace": "bangalore",
+"phone": "9123456780",
+"subscription_active": true
+},
+
+{
+"name3": "KAR",
+"birthtime": "07:45",
+"birthplace": "mandya",
+"phone": "9988776655",
+"subscription_active": false
+},
+
+{
+"name3": "SAN",
+"birthtime": "12:20",
+"birthplace": "mangalore",
+"phone": "9012345678",
+"subscription_active": true
+}
 ]

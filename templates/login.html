@@ -1,79 +1,138 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mangal Vows Corporate Portal</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mangal Vows Corporate Portal</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
 <div class="background-animation"></div>
 
 <div class="portal-card">
 
-    <div class="header-bar">
-        <div class="brand">
-            <div class="shield">C</div>
-            <span>MANGAL VOWS</span>
-        </div>
+<div class="header-bar">
+<div class="brand">
+<div class="shield">C</div>
+<span>MANGAL VOWS</span>
+</div>
 
-        <div class="top-links">
-            <a href="#">Help & Support</a>
-            <a href="#">Language: EN</a>
-        </div>
-    </div>
+<div class="top-links">
+<a href="#">Help & Support</a>
+<a href="#">Language: EN</a>
+</div>
+</div>
 
-    <h2>Corporate Portal Login</h2>
-    <p class="subtitle">Secure access to your professional dashboard</p>
+<h2>Corporate Portal Login</h2>
+<p class="subtitle">Secure access to your professional dashboard</p>
 
-    <form method="POST" action="/login">
+<!-- LOGIN TYPE SELECTOR -->
+<div class="login-toggle">
+<button id="commercialTab" onclick="showCommercial()">Commercial Use</button>
+<button id="personalTab" onclick="showPersonal()">Personal Use</button>
+</div>
 
-        <!-- User Identifier -->
-        <div class="row">
-            <label>User Identifier</label>
-            <div class="double-input">
-                <input type="text" name="name3" maxlength="3" placeholder="First 3 letters Name" required>
-                <input type="text" name="surname3" maxlength="3" placeholder="First 3 letters Surname" required>
-            </div>
-        </div>
+<!-- COMMERCIAL LOGIN -->
+<div id="commercialLogin">
 
-        <!-- Date of Birth -->
-        <div class="row">
-            <label>Date of Birth</label>
-            <input type="date" name="dob">
-        </div>
+<form method="POST" action="/login">
 
-        <!-- Birth Details -->
-        <div class="row">
-            <label>Birth Details</label>
-            <div class="double-input">
-                <input type="time" name="birthtime" required>
-                <input type="text" name="birthplace" placeholder="Place (City)" required>
-            </div>
-        </div>
+<div class="row">
+<label>User Identifier</label>
+<div class="double-input">
+<input type="text" name="name3" maxlength="3" placeholder="First 3 letters Name" required>
+<input type="text" name="surname3" maxlength="3" placeholder="First 3 letters Surname" required>
+</div>
+</div>
 
-        <!-- Mobile Number -->
-        <div class="row">
-            <label>Mobile Number</label>
-            <div class="mobile-input">
-                <span class="country-code">+91</span>
-                <input type="tel" name="phone" placeholder="9876543210" required>
-            </div>
-        </div>
+<div class="row">
+<label>Date of Birth</label>
+<input type="date" name="dob">
+</div>
 
-        <button type="submit" class="secure-btn">
-            🔒 PROCEED TO SECURE LOGIN
-        </button>
+<div class="row">
+<label>Birth Details</label>
+<div class="double-input">
+<input type="time" name="birthtime" required>
+<input type="text" name="birthplace" placeholder="Place (City)" required>
+</div>
+</div>
 
-    </form>
+<div class="row">
+<label>Mobile Number</label>
+<div class="mobile-input">
+<span class="country-code">+91</span>
+<input type="tel" name="phone" placeholder="9876543210" required>
+</div>
+</div>
 
-    <div class="footer-text">
-        By logging in, you agree to our Terms of Service and Privacy Policy
-        <br>
-        All data is encrypted for your privacy and protection
-    </div>
+<button type="submit" class="secure-btn">
+🔒 PROCEED TO SECURE LOGIN
+</button>
+
+</form>
 
 </div>
+
+
+<!-- PERSONAL LOGIN -->
+<div id="personalLogin" style="display:none;">
+
+<h2>Personal Portal Access</h2>
+<p class="subtitle">Access your personal account</p>
+
+<form method="POST" action="/personal_login">
+
+<div class="row">
+<label>Full Name</label>
+<input type="text" name="fullname" placeholder="Enter your full name" required>
+</div>
+
+<div class="row">
+<label>Email</label>
+<input type="email" name="email" placeholder="Enter your email" required>
+</div>
+
+<div class="row">
+<label>Mobile Number</label>
+<div class="mobile-input">
+<span class="country-code">+91</span>
+<input type="tel" name="phone" placeholder="9876543210" required>
+</div>
+</div>
+
+<button type="submit" class="secure-btn">
+🔐 LOGIN TO PERSONAL DASHBOARD
+</button>
+
+</form>
+
+</div>
+
+
+<div class="footer-text">
+By logging in, you agree to our Terms of Service and Privacy Policy
+<br>
+All data is encrypted for your privacy and protection
+</div>
+
+</div>
+
+
+<script>
+
+function showCommercial(){
+document.getElementById("commercialLogin").style.display="block";
+document.getElementById("personalLogin").style.display="none";
+}
+
+function showPersonal(){
+document.getElementById("commercialLogin").style.display="none";
+document.getElementById("personalLogin").style.display="block";
+}
+
+</script>
 
 </body>
 </html>

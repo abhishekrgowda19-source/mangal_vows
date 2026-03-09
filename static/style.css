@@ -164,3 +164,30 @@ input {
     }
 
 }
+.login-toggle{
+display:flex;
+justify-content:center;
+gap:10px;
+margin:20px 0;
+}
+
+.login-toggle button{
+padding:10px 18px;
+border:none;
+border-radius:25px;
+background:#e5e7eb;
+font-size:13px;
+cursor:pointer;
+transition:all 0.3s ease;
+box-shadow:0 2px 5px rgba(0,0,0,0.15);
+}
+
+.login-toggle button:hover{
+transform:translateY(-2px);
+}
+
+.active-tab{
+background:linear-gradient(90deg,#2563eb,#3b82f6);
+color:white;
+box-shadow:0 6px 15px rgba(37,99,235,0.4);
+}

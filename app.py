@@ -1,80 +1,106 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from flask_sqlalchemy import SQLAlchemy
+import json
 import os
-from datetime import datetime, timedelta
 
 app = Flask(__name__)
-
 app.secret_key = os.environ.get("SECRET_KEY", "mangal_secret_key")
 
-# Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "DATABASE_URL",
-    "postgresql://mangal_vows_db_user:x32SdxXBh5upKZTQJemVVFbWWpFGQDSg@dpg-d6fsuo8gjchc73d3631g-a/mangal_vows_db"
-)
-
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db = SQLAlchemy(app)
+USERS_FILE = "users.json"
 
 
-# --------- Database Model ---------
+# ---------- Utility Functions ----------
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name3 = db.Column(db.String(10))
-    surname3 = db.Column(db.String(10))
-    birthtime = db.Column(db.String(10))
-    birthplace = db.Column(db.String(100))
-    phone = db.Column(db.String(20), unique=True)
-    subscription_active = db.Column(db.Boolean, default=False)
-    subscription_expiry = db.Column(db.DateTime, nullable=True)
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        return []
+    with open(USERS_FILE, "r") as file:
+        return json.load(file)
 
 
-# --------- Utility ---------
+def save_users(users):
+    with open(USERS_FILE, "w") as file:
+        json.dump(users, file, indent=4)
+
 
 def normalize_phone(phone):
     return ''.join(filter(str.isdigit, phone))[-10:]
 
 
-# --------- Routes ---------
+def normalize_time(t):
+    t = t.strip()
+    if len(t) > 5:
+        return t[:5]
+    return t
+
+
+# ---------- Routes ----------
 
 @app.route("/")
 def home():
     return render_template("login.html")
 
 
+# ---------- Commercial Login ----------
+
 @app.route("/login", methods=["POST"])
 def login():
 
     name3 = request.form["name3"].strip().upper()
-    birthtime = request.form["birthtime"].strip()
+    birthtime = normalize_time(request.form["birthtime"])
     birthplace = request.form["birthplace"].strip().lower()
     phone = normalize_phone(request.form["phone"])
 
-    user = User.query.filter_by(phone=phone).first()
+    users = load_users()
 
-    if user and \
-       user.name3.upper() == name3 and \
-       user.birthtime == birthtime and \
-       user.birthplace.lower() == birthplace:
+    for user in users:
 
-        session["user"] = user.phone
+        user_phone = normalize_phone(user.get("phone", ""))
+        user_time = normalize_time(user.get("birthtime", ""))
+        user_place = user.get("birthplace", "").lower()
 
-        if user.subscription_active and user.subscription_expiry and user.subscription_expiry > datetime.utcnow():
-            return redirect(url_for("dashboard"))
-        else:
-            return redirect(url_for("subscribe"))
+        if (
+            user.get("name3", "").upper() == name3
+            and user_time == birthtime
+            and user_place == birthplace
+            and user_phone == phone
+        ):
 
-    return "Invalid Credentials"
+            session["user"] = user_phone
 
+            if user.get("subscription_active", False):
+                return redirect(url_for("dashboard"))
+            else:
+                return redirect(url_for("subscribe"))
+
+    return "Invalid Commercial Credentials"
+
+
+# ---------- Personal Login (Direct Dashboard) ----------
+
+@app.route("/personal_login", methods=["POST"])
+def personal_login():
+
+    fullname = request.form["fullname"]
+    email = request.form["email"]
+    phone = normalize_phone(request.form["phone"])
+
+    session["user"] = phone
+
+    return redirect(url_for("dashboard"))
+
+
+# ---------- Subscription Page ----------
 
 @app.route("/subscribe")
 def subscribe():
+
     if "user" not in session:
         return redirect(url_for("home"))
+
     return render_template("subscribe.html")
 
+
+# ---------- Activate Subscription ----------
 
 @app.route("/activate", methods=["POST"])
 def activate():
@@ -82,31 +108,40 @@ def activate():
     if "user" not in session:
         return redirect(url_for("home"))
 
-    user = User.query.filter_by(phone=session["user"]).first()
+    users = load_users()
 
-    if user:
-        user.subscription_active = True
-        user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
-        db.session.commit()
+    for user in users:
+        if normalize_phone(user.get("phone", "")) == session["user"]:
+            user["subscription_active"] = True
+            break
+
+    save_users(users)
 
     return redirect(url_for("dashboard"))
 
 
+# ---------- Dashboard ----------
+
 @app.route("/dashboard")
 def dashboard():
+
     if "user" not in session:
         return redirect(url_for("home"))
+
     return render_template("dashboard.html")
 
 
+# ---------- Logout ----------
+
 @app.route("/logout")
 def logout():
+
     session.clear()
     return redirect(url_for("home"))
 
 
+# ---------- Run Server ----------
+
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True)

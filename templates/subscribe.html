@@ -1,27 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Activate Subscription</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activate Subscription - Mangal Vows</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
 <div class="background-animation"></div>
 
 <div class="portal-card">
 
-    <h2>Subscription Required</h2>
+<div class="header-bar">
 
-    <div class="subscription-box">
-        <h3>Premium Access Plan</h3>
-        <p class="price">₹500</p>
-        <p>Valid for 30 Days</p>
-        <p>Access to search, filters & AI matches</p>
-    </div>
+<div class="brand">
+<div class="shield">C</div>
+<span>MANGAL VOWS</span>
+</div>
 
-    <form method="POST" action="/activate">
-        <button class="secure-btn">Pay ₹500 & Continue</button>
-    </form>
+<div class="top-links">
+<a href="/">Login</a>
+<a href="#">Help</a>
+</div>
+
+</div>
+
+<h2>Subscription Required</h2>
+<p class="subtitle">Activate your plan to unlock full portal access</p>
+
+<div class="subscription-box">
+
+<h3>Premium Access Plan</h3>
+
+<p class="price">₹500</p>
+
+<p>✔ Valid for 30 Days</p>
+<p>✔ Unlimited profile browsing</p>
+<p>✔ Advanced search filters</p>
+<p>✔ AI-powered match suggestions</p>
+
+</div>
+
+<form method="POST" action="/activate">
+
+<button type="submit" class="secure-btn">
+🔐 Pay ₹500 & Activate Access
+</button>
+
+</form>
+
+<div class="footer-text">
+Secure payment gateway • Data encrypted • Safe transactions
+</div>
 
 </div>
 

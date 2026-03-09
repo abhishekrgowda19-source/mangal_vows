@@ -1,19 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mangal Vows Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
-<div class="card">
+<div class="background-animation"></div>
 
-    <h2>Welcome to Mangal Vows</h2>
-    <p>Your subscription is active.</p>
+<div class="portal-card">
 
-    <a href="/logout">
-        <button>Logout</button>
-    </a>
+<div class="header-bar">
+
+<div class="brand">
+<div class="shield">C</div>
+<span>MANGAL VOWS</span>
+</div>
+
+<div class="top-links">
+<a href="#">Support</a>
+<a href="#">Settings</a>
+</div>
+
+</div>
+
+<h2>Welcome to Mangal Vows</h2>
+<p class="subtitle">Your account is active and secure.</p>
+
+<div class="dashboard-section">
+
+<div class="dashboard-box">
+<h3>Profile Status</h3>
+<p>Your profile is verified and active.</p>
+</div>
+
+<div class="dashboard-box">
+<h3>Access Status</h3>
+<p>You can access all portal features.</p>
+</div>
+
+<div class="dashboard-box">
+<h3>Security</h3>
+<p>Your login session is encrypted.</p>
+</div>
+
+</div>
+
+<div style="text-align:center; margin-top:30px;">
+
+<a href="/logout">
+<button class="secure-btn">Logout</button>
+</a>
+
+</div>
+
+<div class="footer-text">
+Mangal Vows Portal  
+Secure · Private · Protected
+</div>
 
 </div>
 
