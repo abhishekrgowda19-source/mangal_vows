@@ -1,0 +1,34 @@
+<h2>Search Profiles</h2>
+
+<form method="GET" action="/search">
+
+Age
+<input type="number" name="age">
+
+Location
+<input type="text" name="location">
+
+Profession
+<input type="text" name="profession">
+
+<button type="submit">Search</button>
+
+</form>
+
+<hr>
+
+<h3>Results</h3>
+
+{% for user in users %}
+
+<div style="border:1px solid gray; padding:10px; margin:10px">
+
+Name: {{ user.name }} <br>
+Age: {{ user.age }} <br>
+Height: {{ user.height }} <br>
+Profession: {{ user.profession }} <br>
+Location: {{ user.location }}
+
+</div>
+
+{% endfor %}

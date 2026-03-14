@@ -1,0 +1,18 @@
+<h2>Agent Dashboard</h2>
+
+<a href="/agent-logout">Logout</a>
+
+<h3>Client Profiles</h3>
+
+{% for user in users %}
+
+<div style="border:1px solid gray; padding:10px; margin:10px">
+
+Name: {{ user.name }} <br>
+Age: {{ user.age }} <br>
+Location: {{ user.location }} <br>
+Profession: {{ user.profession }}
+
+</div>
+
+{% endfor %}

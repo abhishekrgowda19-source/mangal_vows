@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mangal Vows - Register</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div class="background-animation"></div>
+
+<div class="portal-card">
+
+<div class="header-bar">
+
+<div class="brand">
+<div class="shield">C</div>
+<span>MANGAL VOWS</span>
+</div>
+
+<div class="top-links">
+<a href="/">Login</a>
+</div>
+
+</div>
+
+<h2>Create Your Account</h2>
+<p class="subtitle">Register to access your dashboard</p>
+
+<form method="POST" action="/register">
+
+<div class="row">
+<label>Full Name</label>
+<input type="text" name="name" placeholder="Enter full name" required>
+</div>
+
+<div class="row">
+<label>Mobile Number</label>
+
+<div class="mobile-input">
+<span class="country-code">+91</span>
+<input type="tel" name="phone" placeholder="9876543210" required>
+</div>
+
+</div>
+
+<div class="row">
+<label>Age</label>
+<input type="number" name="age" placeholder="Enter age">
+</div>
+
+<div class="row">
+<label>Height</label>
+<input type="text" name="height" placeholder="Example: 5ft 8in">
+</div>
+
+<div class="row">
+<label>Profession</label>
+<input type="text" name="profession" placeholder="Enter profession">
+</div>
+
+<div class="row">
+<label>Location</label>
+<input type="text" name="location" placeholder="City / State">
+</div>
+
+<button type="submit" class="secure-btn">
+CREATE ACCOUNT
+</button>
+
+</form>
+
+<div class="footer-text">
+Already have an account?<br>
+<a href="/">Login Here</a>
+</div>
+
+</div>
+
+</body>
+</html>

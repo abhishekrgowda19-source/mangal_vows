@@ -1,137 +1,326 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import json
+from config import Config
+from database import db
+from models import User, Agent
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+from flask_bcrypt import Bcrypt
 import os
 
 app = Flask(__name__)
+app.config.from_object(Config)
 app.secret_key = os.environ.get("SECRET_KEY", "mangal_secret_key")
 
-USERS_FILE = "users.json"
+db.init_app(app)
+bcrypt = Bcrypt(app)
 
 
-# ---------- Utility Functions ----------
+# ---------------- ADMIN SECURITY ----------------
 
-def load_users():
-    if not os.path.exists(USERS_FILE):
-        return []
-    with open(USERS_FILE, "r") as file:
-        return json.load(file)
+class SecureModelView(ModelView):
+
+    def is_accessible(self):
+        return session.get("role") == "admin"
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for("admin_login"))
 
 
-def save_users(users):
-    with open(USERS_FILE, "w") as file:
-        json.dump(users, file, indent=4)
+# ---------------- ADMIN PANEL ----------------
 
+admin = Admin(app, name="Mangal Vows Admin")
+admin.add_view(SecureModelView(User, db.session))
+admin.add_view(SecureModelView(Agent, db.session))
+
+
+# ---------------- CREATE TABLES ----------------
+
+with app.app_context():
+    db.create_all()
+
+
+# ---------------- UTIL FUNCTIONS ----------------
 
 def normalize_phone(phone):
+    if not phone:
+        return ""
     return ''.join(filter(str.isdigit, phone))[-10:]
 
 
-def normalize_time(t):
-    t = t.strip()
-    if len(t) > 5:
-        return t[:5]
-    return t
-
-
-# ---------- Routes ----------
+# ---------------- HOME ----------------
 
 @app.route("/")
 def home():
     return render_template("login.html")
 
 
-# ---------- Commercial Login ----------
+# ---------------- REGISTER USER ----------------
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+
+    if request.method == "POST":
+
+        name = request.form["name"]
+        phone = normalize_phone(request.form["phone"])
+
+        age = request.form.get("age")
+        height = request.form.get("height")
+        profession = request.form.get("profession")
+        location = request.form.get("location")
+
+        existing_user = User.query.filter_by(phone=phone).first()
+
+        if existing_user:
+            return "User already exists"
+
+        user = User(
+            name=name,
+            name3=name[:3].upper(),
+            phone=phone,
+            age=age,
+            height=height,
+            profession=profession,
+            location=location,
+            subscription_active=False
+        )
+
+        db.session.add(user)
+        db.session.commit()
+
+        return redirect(url_for("home"))
+
+    return render_template("register.html")
+
+
+# ---------------- COMMERCIAL LOGIN ----------------
 
 @app.route("/login", methods=["POST"])
 def login():
 
-    name3 = request.form["name3"].strip().upper()
-    birthtime = normalize_time(request.form["birthtime"])
-    birthplace = request.form["birthplace"].strip().lower()
-    phone = normalize_phone(request.form["phone"])
+    name3 = request.form.get("name3", "").upper().strip()
+    phone = normalize_phone(request.form.get("phone"))
 
-    users = load_users()
+    user = User.query.filter_by(
+        name3=name3,
+        phone=phone
+    ).first()
 
-    for user in users:
+    if not user:
+        return "Invalid credentials"
 
-        user_phone = normalize_phone(user.get("phone", ""))
-        user_time = normalize_time(user.get("birthtime", ""))
-        user_place = user.get("birthplace", "").lower()
+    session["user"] = user.phone
+    session["role"] = "user"
 
-        if (
-            user.get("name3", "").upper() == name3
-            and user_time == birthtime
-            and user_place == birthplace
-            and user_phone == phone
-        ):
+    if user.subscription_active:
+        return redirect(url_for("dashboard"))
 
-            session["user"] = user_phone
-
-            if user.get("subscription_active", False):
-                return redirect(url_for("dashboard"))
-            else:
-                return redirect(url_for("subscribe"))
-
-    return "Invalid Commercial Credentials"
+    return redirect(url_for("subscribe"))
 
 
-# ---------- Personal Login (Direct Dashboard) ----------
+# ---------------- PERSONAL LOGIN ----------------
 
 @app.route("/personal_login", methods=["POST"])
 def personal_login():
 
-    fullname = request.form["fullname"]
-    email = request.form["email"]
-    phone = normalize_phone(request.form["phone"])
+    fullname = request.form.get("fullname")
+    phone = normalize_phone(request.form.get("phone"))
 
-    session["user"] = phone
+    user = User.query.filter_by(phone=phone).first()
+
+    if not user:
+
+        user = User(
+            name=fullname,
+            name3=fullname[:3].upper(),
+            phone=phone,
+            subscription_active=False
+        )
+
+        db.session.add(user)
+        db.session.commit()
+
+    session["user"] = user.phone
+    session["role"] = "user"
 
     return redirect(url_for("dashboard"))
 
 
-# ---------- Subscription Page ----------
+# ---------------- SUBSCRIPTION ----------------
 
 @app.route("/subscribe")
 def subscribe():
 
-    if "user" not in session:
+    if session.get("role") != "user":
         return redirect(url_for("home"))
 
     return render_template("subscribe.html")
 
 
-# ---------- Activate Subscription ----------
+# ---------------- ACTIVATE SUBSCRIPTION ----------------
 
 @app.route("/activate", methods=["POST"])
 def activate():
 
-    if "user" not in session:
+    if session.get("role") != "user":
         return redirect(url_for("home"))
 
-    users = load_users()
+    user = User.query.filter_by(phone=session["user"]).first()
 
-    for user in users:
-        if normalize_phone(user.get("phone", "")) == session["user"]:
-            user["subscription_active"] = True
-            break
-
-    save_users(users)
+    if user:
+        user.subscription_active = True
+        db.session.commit()
 
     return redirect(url_for("dashboard"))
 
 
-# ---------- Dashboard ----------
+# ---------------- USER DASHBOARD ----------------
 
 @app.route("/dashboard")
 def dashboard():
 
-    if "user" not in session:
+    if session.get("role") != "user":
         return redirect(url_for("home"))
 
     return render_template("dashboard.html")
 
 
-# ---------- Logout ----------
+# ---------------- SEARCH USERS ----------------
+
+@app.route("/search")
+def search():
+
+    if session.get("role") != "user":
+        return redirect(url_for("home"))
+
+    age = request.args.get("age")
+    location = request.args.get("location")
+    profession = request.args.get("profession")
+
+    query = User.query
+
+    if age:
+        query = query.filter(User.age == age)
+
+    if location:
+        query = query.filter(User.location.ilike(f"%{location}%"))
+
+    if profession:
+        query = query.filter(User.profession.ilike(f"%{profession}%"))
+
+    users = query.all()
+
+    return render_template("search.html", users=users)
+
+
+# ---------------- CREATE AGENT ----------------
+
+@app.route("/create-agent", methods=["POST"])
+def create_agent():
+
+    name = request.form["name"]
+    email = request.form["email"]
+    password = request.form["password"]
+
+    existing = Agent.query.filter_by(email=email).first()
+
+    if existing:
+        return "Agent already exists"
+
+    password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+
+    agent = Agent(
+        name=name,
+        email=email,
+        password_hash=password_hash
+    )
+
+    db.session.add(agent)
+    db.session.commit()
+
+    return "Agent created successfully"
+
+
+# ---------------- AGENT LOGIN ----------------
+
+@app.route("/agent-login", methods=["GET", "POST"])
+def agent_login():
+
+    if request.method == "POST":
+
+        email = request.form["email"]
+        password = request.form["password"]
+
+        agent = Agent.query.filter_by(email=email).first()
+
+        if not agent:
+            return "Agent not found"
+
+        if not bcrypt.check_password_hash(agent.password_hash, password):
+            return "Invalid password"
+
+        session["role"] = "agent"
+        session["agent"] = agent.email
+
+        return redirect(url_for("agent_dashboard"))
+
+    return render_template("agent_login.html")
+
+
+# ---------------- AGENT DASHBOARD ----------------
+
+@app.route("/agent-dashboard")
+def agent_dashboard():
+
+    if session.get("role") != "agent":
+        return redirect(url_for("agent_login"))
+
+    users = User.query.all()
+
+    return render_template("agent_dashboard.html", users=users)
+
+
+# ---------------- ADMIN LOGIN ----------------
+
+@app.route("/admin-login", methods=["GET", "POST"])
+def admin_login():
+
+    if request.method == "POST":
+
+        username = request.form["username"]
+        password = request.form["password"]
+
+        if username == "admin" and password == "admin123":
+
+            session["role"] = "admin"
+            return redirect(url_for("admin_dashboard"))
+
+        return "Invalid admin login"
+
+    return render_template("admin_login.html")
+
+
+# ---------------- ADMIN DASHBOARD ----------------
+
+@app.route("/admin-dashboard")
+def admin_dashboard():
+
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
+
+    users = User.query.count()
+    agents = Agent.query.count()
+    subscriptions = User.query.filter_by(subscription_active=True).count()
+
+    return render_template(
+        "admin_dashboard.html",
+        users=users,
+        agents=agents,
+        subscriptions=subscriptions
+    )
+
+
+# ---------------- LOGOUT ----------------
 
 @app.route("/logout")
 def logout():
@@ -140,8 +329,10 @@ def logout():
     return redirect(url_for("home"))
 
 
-# ---------- Run Server ----------
+# ---------------- RUN SERVER ----------------
 
 if __name__ == "__main__":
+
     port = int(os.environ.get("PORT", 5000))
+
     app.run(host="0.0.0.0", port=port, debug=True)
