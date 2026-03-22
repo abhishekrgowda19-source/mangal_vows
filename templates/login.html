@@ -9,6 +9,8 @@
 
 <style>
 
+/* ===== YOUR CSS (UNCHANGED) ===== */
+
 .role-tabs{
 display:flex;
 justify-content:center;
@@ -33,8 +35,6 @@ color:white;
 .role-panel{
 margin-top:20px;
 }
-
-/* LOGIN SWITCH */
 
 .login-switch{
 margin-top:20px;
@@ -76,8 +76,6 @@ padding:20px;
 background:#f8fafc;
 border-radius:12px;
 }
-
-/* FORM STYLE */
 
 .row{
 margin-bottom:15px;
@@ -142,66 +140,33 @@ color:#2563eb;
 
 </head>
 
-
 <body>
-
-<div class="background-animation"></div>
 
 <div class="portal-card">
 
-<div class="header-bar">
-
-<div class="brand">
-<div class="shield">C</div>
-<span>MANGAL VOWS</span>
-</div>
-
-<div class="top-links">
-<a href="#">Help & Support</a>
-<a href="#">Language: EN</a>
-</div>
-
-</div>
-
-
 <h2>Portal Login</h2>
-<p class="subtitle">Secure access to your account</p>
-
-
 
 <!-- ROLE TABS -->
-
 <div class="role-tabs">
-
-<button onclick="showRole('user')" class="active">User</button>
+<button onclick="showRole('user')">User</button>
 <button onclick="showRole('agent')">Agent</button>
 <button onclick="showRole('admin')">Admin</button>
-
 </div>
 
-
-
-<!-- USER PANEL -->
-
+<!-- ================= USER PANEL ================= -->
 <div id="userPanel" class="role-panel">
 
 <div class="login-switch">
 
 <div class="switch-buttons">
-
 <button onclick="showCommercial()">Commercial Login</button>
 <button onclick="showPersonal()">Personal Login</button>
-
 </div>
 
-
 <div class="slider-container">
-
 <div class="slider" id="loginSlider">
 
-
-<!-- COMMERCIAL LOGIN -->
-
+<!-- ===== COMMERCIAL LOGIN ===== -->
 <div class="slide">
 
 <div class="section-title">Commercial Portal Access</div>
@@ -210,12 +175,10 @@ color:#2563eb;
 
 <div class="row">
 <label>User Identifier</label>
-
 <div class="double-input">
-<input type="text" name="name3" maxlength="3" placeholder="First 3 letters of Name " required>
-<input type="text" name="surname3" maxlength="10" placeholder=" Surname ">
+<input type="text" name="name3" maxlength="3" placeholder="First 3 letters" required>
+<input type="text" name="surname3" placeholder="Surname">
 </div>
-
 </div>
 
 <div class="row">
@@ -225,88 +188,64 @@ color:#2563eb;
 
 <div class="row">
 <label>Birth Details</label>
-
 <div class="double-input">
 <input type="time" name="birthtime">
-<input type="text" name="birthplace" placeholder="City of Birth">
+<input type="text" name="birthplace" placeholder="City">
 </div>
-
-</div>
-
-<div class="row">
-<label>Registered Mobile Number</label>
-
-<div class="mobile-input">
-<span class="country-code">+91</span>
-<input type="tel" name="phone" placeholder="Enter your mobile number" required>
-</div>
-
-</div>
-
-<button class="secure-btn">
-Secure Login
-</button>
-
-</form>
-
-</div>
-
-
-
-<!-- PERSONAL LOGIN -->
-
-<div class="slide personal">
-
-<div class="section-title">Personal Account Login</div>
-
-<form method="POST" action="/personal_login">
-
-<div class="row">
-<label>Full Name</label>
-<input type="text" name="fullname" placeholder="Enter your full name" required>
-</div>
-
-<div class="row">
-<label>Email Address</label>
-<input type="email" name="email" placeholder="Enter your email">
 </div>
 
 <div class="row">
 <label>Mobile Number</label>
-
 <div class="mobile-input">
 <span class="country-code">+91</span>
-<input type="tel" name="phone" placeholder="Enter your mobile number" required>
+<input type="tel" name="phone" required>
+</div>
 </div>
 
+<button class="secure-btn">Commercial Login</button>
+
+</form>
 </div>
 
-<button class="secure-btn">
-Login to Personal Dashboard
-</button>
+<!-- ===== PERSONAL LOGIN ===== -->
+<div class="slide personal">
+
+<div class="section-title">Personal Login</div>
+
+<form method="POST" action="/personal-login">
+
+<div class="row">
+<label>Full Name</label>
+<input type="text" name="name" required>
+</div>
+
+<div class="row">
+<label>Mobile Number</label>
+<div class="mobile-input">
+<span class="country-code">+91</span>
+<input type="tel" name="phone" required>
+</div>
+</div>
+
+<button class="secure-btn">Personal Login</button>
 
 </form>
 
 </div>
 
-
 </div>
 </div>
 
 </div>
-
 </div>
 
-
-
-<!-- AGENT PANEL -->
-
+<!-- ================= AGENT PANEL ================= -->
 <div id="agentPanel" class="role-panel" style="display:none;">
 
 <form method="POST" action="/agent-login">
 
 <div class="row">
-<label>Agent Email</label>
+<label>Email</label>
 <input type="email" name="email" required>
 </div>
 
@@ -315,24 +254,19 @@ Login to Personal Dashboard
 <input type="password" name="password" required>
 </div>
 
-<button class="secure-btn">
-Agent Login
-</button>
+<button class="secure-btn">Agent Login</button>
 
 </form>
 
 </div>
 
-
-
-<!-- ADMIN PANEL -->
-
+<!-- ================= ADMIN PANEL ================= -->
 <div id="adminPanel" class="role-panel" style="display:none;">
 
 <form method="POST" action="/admin-login">
 
 <div class="row">
-<label>Admin Username</label>
+<label>Username</label>
 <input type="text" name="username" required>
 </div>
 
@@ -341,24 +275,15 @@ Agent Login
 <input type="password" name="password" required>
 </div>
 
-<button class="secure-btn">
-Admin Login
-</button>
+<button class="secure-btn">Admin Login</button>
 
 </form>
 
 </div>
 
-
-
-<div class="footer-text">
-By logging in you agree to Terms & Privacy Policy
 </div>
 
-</div>
-
-
-
+<!-- ================= SCRIPT ================= -->
 <script>
 
 function showRole(role){
@@ -367,18 +292,9 @@ document.getElementById("userPanel").style.display="none";
 document.getElementById("agentPanel").style.display="none";
 document.getElementById("adminPanel").style.display="none";
 
-if(role==="user"){
-document.getElementById("userPanel").style.display="block";
-}
-
-if(role==="agent"){
-document.getElementById("agentPanel").style.display="block";
-}
-
-if(role==="admin"){
-document.getElementById("adminPanel").style.display="block";
-}
-
+if(role==="user") document.getElementById("userPanel").style.display="block";
+if(role==="agent") document.getElementById("agentPanel").style.display="block";
+if(role==="admin") document.getElementById("adminPanel").style.display="block";
 }
 
 function showCommercial(){
@@ -389,8 +305,11 @@ function showPersonal(){
 document.getElementById("loginSlider").style.transform="translateX(-50%)";
 }
 
-</script>
+window.onload = function(){
+showRole("user");
+}
 
+</script>
 
 </body>
 </html>

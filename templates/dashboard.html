@@ -33,6 +33,17 @@ border-radius:8px;
 border:1px solid #e5e7eb;
 }
 
+.secure-btn{
+padding:12px 20px;
+background:#2563eb;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+text-decoration:none;
+display:inline-block;
+}
+
 </style>
 
 </head>
@@ -57,11 +68,8 @@ border:1px solid #e5e7eb;
 
 </div>
 
-
 <h2>User Dashboard</h2>
 <p class="subtitle">Find compatible profiles</p>
-
-
 
 <!-- SEARCH SECTION -->
 
@@ -84,11 +92,9 @@ border:1px solid #e5e7eb;
 
 </div>
 
-
-
 <!-- RESULTS -->
 
-{% if users %}
+{% if users is defined and users %}
 
 <h3 style="margin-top:30px;">Search Results</h3>
 
@@ -97,28 +103,27 @@ border:1px solid #e5e7eb;
 <div class="result-box">
 
 <b>Name:</b> {{ user.name }} <br>
-<b>Age:</b> {{ user.age }} <br>
-<b>Profession:</b> {{ user.profession }} <br>
-<b>Location:</b> {{ user.location }}
+<b>Age:</b> {{ user.age or "N/A" }} <br>
+<b>Profession:</b> {{ user.profession or "N/A" }} <br>
+<b>Location:</b> {{ user.location or "N/A" }}
 
 </div>
 
 {% endfor %}
 
+{% elif users is defined %}
+
+<p style="margin-top:20px;">No matching profiles found.</p>
+
 {% endif %}
 
-
+<!-- BUTTONS -->
 
 <div style="text-align:center;margin-top:40px;">
 
-<a href="/logout">
-<button class="secure-btn">Logout</button>
-</a>
-<a href="/matches">
-<button class="secure-btn">Find Matches</button>
-</a>
-</div>
+<a href="/logout" class="secure-btn">Logout</a>
 
+</div>
 
 <div class="footer-text">
 

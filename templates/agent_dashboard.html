@@ -1,18 +1,93 @@
-<h2>Agent Dashboard</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agent Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f4f6f9;
+        }
 
-<a href="/agent-logout">Logout</a>
+        .header {
+            background: #4f46e5;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+        }
 
-<h3>Client Profiles</h3>
+        .container {
+            padding: 30px;
+        }
 
-{% for user in users %}
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
 
-<div style="border:1px solid gray; padding:10px; margin:10px">
+        .btn {
+            padding: 10px 15px;
+            background: #4f46e5;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+        }
 
-Name: {{ user.name }} <br>
-Age: {{ user.age }} <br>
-Location: {{ user.location }} <br>
-Profession: {{ user.profession }}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h2>Agent: {{ agent.name }}</h2>
+    <div>
+        <a href="/agent-add-user" class="btn">+ Add User</a>
+        <a href="/logout" class="btn">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="card">
+        <h3>Total Users Managed</h3>
+        <h1>{{ users|length }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Your Users</h3>
+
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+            </tr>
+
+            {% for user in users %}
+            <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.phone }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
 
 </div>
 
-{% endfor %}
+</body>
+</html>

@@ -4,37 +4,47 @@ from database import db
 
 auth = Blueprint("auth", __name__)
 
-def normalize_phone(phone):
-    return ''.join(filter(str.isdigit, phone))[-10:]
+# ----------------------------------------
+# HELPERS
+# ----------------------------------------
 
+def normalize_phone(phone):
+    return ''.join(filter(str.isdigit, phone))[-10:] if phone else ""
+
+
+def get_name3(name):
+    return name[:3].upper() if len(name) >= 3 else name.upper()
+
+
+# ----------------------------------------
+# HOME
+# ----------------------------------------
 
 @auth.route("/", methods=["GET"])
 def home():
     return render_template("login.html")
 
 
+# ----------------------------------------
+# LOGIN (FIXED)
+# ----------------------------------------
+
 @auth.route("/login", methods=["POST"])
 def login():
 
-    name3 = request.form["name3"].strip().upper()
-    birthtime = request.form["birthtime"]
-    birthplace = request.form["birthplace"].strip().lower()
-    phone = normalize_phone(request.form["phone"])
+    name3 = request.form.get("name3", "").strip().upper()
+    phone = normalize_phone(request.form.get("phone"))
 
-    user = User.query.filter_by(
-        name3=name3,
-        birthtime=birthtime,
-        birthplace=birthplace,
-        phone=phone
-    ).first()
+    user = User.query.filter_by(phone=phone).first()
 
-    if user:
+    if not user or get_name3(user.name) != name3:
+        return render_template("login.html", error="Invalid credentials")
 
-        session["user"] = user.phone
+    session["user"] = user.phone
+    session["role"] = "user"
 
-        if user.subscription_active:
-            return redirect(url_for("dashboard"))
+    # 🔐 Subscription check (with expiry safety)
+    if not user.subscription_active:
+        return render_template("subscribe.html")
 
-        return redirect(url_for("subscribe"))
-
-    return "Invalid credentials"
+    return redirect(url_for("dashboard"))

@@ -1,13 +1,120 @@
-<h2>Agent Login</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agent Login</title>
 
-<form method="POST">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-Email
-<input type="text" name="email"><br><br>
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 14px;
+            width: 320px;
+            box-shadow: 0px 15px 40px rgba(0,0,0,0.25);
+            text-align: center;
+            animation: fadeIn 0.6s ease-in-out;
+        }
 
-Password
-<input type="password" name="password"><br><br>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-<button type="submit">Login</button>
+        h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
 
-</form>
+        .subtitle {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #4f46e5;
+            outline: none;
+            box-shadow: 0 0 5px rgba(79,70,229,0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4f46e5;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+            min-height: 18px; /* keeps layout stable */
+        }
+
+        .footer {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-box">
+    <h2>Mangal Vows</h2>
+    <div class="subtitle">Agent Portal</div>
+
+    <form method="POST" action="/agent-login" onsubmit="this.querySelector('button').disabled=true;">
+        <input type="email" name="email" placeholder="Email" required autocomplete="email">
+        <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
+
+        <button type="submit">Login</button>
+    </form>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% else %}
+        <p class="error"></p>
+    {% endif %}
+
+    <div class="footer">
+        Secure Agent Access
+    </div>
+</div>
+
+</body>
+</html>
