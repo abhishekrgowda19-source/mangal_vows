@@ -22,6 +22,13 @@ def is_subscription_valid(user_data):
     return True
 
 
+def subscription_redirect(user_data):
+    if not user_data.subscription_expiry:
+        return redirect(url_for("subscription.subscribe"))
+    else:
+        return redirect(url_for("subscription.renew"))
+
+
 @user.route("/")
 def home():
     return render_template("login.html")
@@ -43,7 +50,7 @@ def login():
     session["role"] = "user"
 
     if not is_subscription_valid(user_data):
-        return redirect(url_for("subscription.subscribe"))
+        return subscription_redirect(user_data)
 
     return redirect(url_for("user.dashboard"))
 
@@ -64,9 +71,68 @@ def personal_login():
     session["role"] = "user"
 
     if not is_subscription_valid(user_data):
-        return redirect(url_for("subscription.subscribe"))
+        return subscription_redirect(user_data)
 
     return redirect(url_for("user.dashboard"))
+
+
+# ── Self Registration (New User) ──────────────────────
+
+@user.route("/self-register", methods=["GET", "POST"])
+def self_register():
+    if request.method == "POST":
+        name          = request.form.get("name", "").strip()
+        phone         = normalize_phone(request.form.get("phone", ""))
+        email         = request.form.get("email", "").strip()
+        age           = request.form.get("age")
+        gender        = request.form.get("gender", "").strip()
+        height        = request.form.get("height", "").strip()
+        religion      = request.form.get("religion", "").strip()
+        caste         = request.form.get("caste", "").strip()
+        community     = request.form.get("community", "").strip()
+        mother_tongue = request.form.get("mother_tongue", "").strip()
+        profession    = request.form.get("profession", "").strip()
+        education     = request.form.get("education", "").strip()
+        city          = request.form.get("city", "").strip()
+        state         = request.form.get("state", "").strip()
+
+        # Validation
+        if not name or not phone:
+            return render_template("self_register.html", error="Name and phone are required")
+
+        if User.query.filter_by(phone=phone).first():
+            return render_template("self_register.html", error="Phone already registered! Please login instead.")
+
+        # ✅ Save new user to DB (visible in admin + agent panel)
+        new_user = User(
+            name          = name,
+            phone         = phone,
+            email         = email,
+            age           = int(age) if age else None,
+            gender        = gender,
+            height        = height,
+            religion      = religion,
+            caste         = caste,
+            community     = community,
+            mother_tongue = mother_tongue,
+            profession    = profession,
+            education     = education,
+            city          = city,
+            state         = state,
+            location      = f"{city}, {state}".strip(", "),
+            agent_id      = None  # ✅ No agent — self registered
+        )
+        db.session.add(new_user)
+        db.session.commit()
+
+        # ✅ Auto login after registration
+        session["user"] = new_user.phone
+        session["role"] = "user"
+
+        # ✅ Redirect to ₹500 payment
+        return redirect(url_for("subscription.subscribe"))
+
+    return render_template("self_register.html")
 
 
 # ── Dashboard ─────────────────────────────────────────
@@ -81,7 +147,7 @@ def dashboard():
         return redirect(url_for("user.home"))
 
     if not is_subscription_valid(user_data):
-        return redirect(url_for("subscription.subscribe"))
+        return subscription_redirect(user_data)
 
     return render_template("dashboard.html", user=user_data)
 
@@ -94,29 +160,50 @@ def search():
         return redirect(url_for("user.home"))
 
     user_data = User.query.filter_by(phone=session.get("user")).first()
-    if not user_data or not is_subscription_valid(user_data):
-        return redirect(url_for("subscription.subscribe"))
+    if not user_data:
+        return redirect(url_for("user.home"))
 
-    age        = request.args.get("age")
-    location   = request.args.get("location")
-    profession = request.args.get("profession")
+    if not is_subscription_valid(user_data):
+        return subscription_redirect(user_data)
 
-    query = User.query
+    age_min       = request.args.get("age_min")
+    age_max       = request.args.get("age_max")
+    height        = request.args.get("height")
+    location      = request.args.get("location")
+    profession    = request.args.get("profession")
+    community     = request.args.get("community")
+    mother_tongue = request.args.get("mother_tongue")
+    religion      = request.args.get("religion")
+    caste         = request.args.get("caste")
+    gender        = request.args.get("gender")
 
-    if age:
-        try:
-            query = query.filter_by(age=int(age))
-        except ValueError:
-            pass
+    query = User.query.filter(User.phone != user_data.phone)
 
+    if age_min:
+        try: query = query.filter(User.age >= int(age_min))
+        except ValueError: pass
+    if age_max:
+        try: query = query.filter(User.age <= int(age_max))
+        except ValueError: pass
+    if height:
+        query = query.filter(User.height.ilike(f"%{height}%"))
     if location:
         query = query.filter(User.location.ilike(f"%{location}%"))
-
     if profession:
         query = query.filter(User.profession.ilike(f"%{profession}%"))
+    if community:
+        query = query.filter(User.community.ilike(f"%{community}%"))
+    if mother_tongue:
+        query = query.filter(User.mother_tongue.ilike(f"%{mother_tongue}%"))
+    if religion:
+        query = query.filter(User.religion.ilike(f"%{religion}%"))
+    if caste:
+        query = query.filter(User.caste.ilike(f"%{caste}%"))
+    if gender:
+        query = query.filter(User.gender == gender)
 
     users = query.all()
-    return render_template("dashboard.html", users=users)
+    return render_template("dashboard.html", users=users, user=user_data)
 
 
 # ── Logout ────────────────────────────────────────────

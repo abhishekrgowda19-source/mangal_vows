@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renew Subscription - Mangal Vows</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.renewal-box {
+    background: #f0fdf4;
+    border: 2px solid #16a34a;
+    border-radius: 12px;
+    padding: 25px;
+    margin: 20px 0;
+    text-align: center;
+}
+.price {
+    font-size: 48px;
+    font-weight: bold;
+    color: #16a34a;
+    margin: 10px 0;
+}
+.price span {
+    font-size: 20px;
+    color: #6b7280;
+}
+.features p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #374151;
+}
+.expiry-info {
+    background: #fef3c7;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 13px;
+    color: #92400e;
+    margin-bottom: 15px;
+    text-align: center;
+}
+.error {
+    color: red;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+}
+.activate-link {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 13px;
+    color: #6b7280;
+}
+.activate-link a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+}
+</style>
+</head>
+<body>
+<div class="background-animation"></div>
+<div class="portal-card">
+
+    <div class="header-bar">
+        <div class="brand">
+            <div class="shield">M</div>
+            <span>MANGAL VOWS</span>
+        </div>
+        <div class="top-links">
+            <a href="{{ url_for('user.home') }}">Login</a>
+            <a href="#">Help</a>
+        </div>
+    </div>
+
+    <h2>Renew Subscription</h2>
+    <p class="subtitle">Continue finding your perfect match</p>
+
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+
+    {% if user and user.subscription_expiry %}
+    <div class="expiry-info">
+        ⏰ Your subscription 
+        {% if user.subscription_expiry < now %}
+            expired on {{ user.subscription_expiry.strftime('%d %b %Y') }}
+        {% else %}
+            expires on {{ user.subscription_expiry.strftime('%d %b %Y') }}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="renewal-box">
+        <h3>30-Day Renewal</h3>
+        <div class="price">₹100 <span>/ 30 days</span></div>
+        <div class="features">
+            <p>✔ Full access for 30 more days</p>
+            <p>✔ Unlimited profile browsing</p>
+            <p>✔ Advanced search filters</p>
+            <p>✔ View contact details</p>
+        </div>
+    </div>
+
+    <!-- Hidden form -->
+    <form method="POST" action="{{ url_for('subscription.verify_renewal') }}" id="renewal-form">
+        <input type="hidden" name="razorpay_order_id"   id="razorpay_order_id">
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_signature"  id="razorpay_signature">
+    </form>
+
+    <button class="secure-btn" onclick="openRazorpay()" style="width:100%;background:linear-gradient(to right,#16a34a,#15803d)">
+        🔄 Pay ₹100 & Renew
+    </button>
+
+    <p class="activate-link">
+        New user? 
+        <a href="{{ url_for('subscription.subscribe') }}">Activate for ₹500 →</a>
+    </p>
+
+    <div class="footer-text">
+        Secure payment · Data encrypted · Safe transactions
+    </div>
+
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+function openRazorpay() {
+    var options = {
+        key:         "{{ key_id }}",
+        amount:      "{{ amount }}",
+        currency:    "INR",
+        name:        "Mangal Vows",
+        description: "Subscription Renewal - 30 Days",
+        order_id:    "{{ order_id }}",
+        handler: function(response) {
+            document.getElementById("razorpay_order_id").value   = response.razorpay_order_id;
+            document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+            document.getElementById("razorpay_signature").value  = response.razorpay_signature;
+            document.getElementById("renewal-form").submit();
+        },
+        theme: { color: "#16a34a" }
+    };
+    var rzp = new Razorpay(options);
+    rzp.open();
+}
+</script>
+</body>
+</html>

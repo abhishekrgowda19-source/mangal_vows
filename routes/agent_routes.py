@@ -1,9 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from models import User, Agent
 from database import db
-from flask_bcrypt import Bcrypt
 
-bcrypt = Bcrypt()
 agent_bp = Blueprint("agent_bp", __name__)
 
 
@@ -19,6 +17,7 @@ def agent_login():
 
         agent = Agent.query.filter_by(email=email).first()
 
+        from app import bcrypt
         if not agent or not bcrypt.check_password_hash(agent.password_hash, password):
             return render_template("login.html", error="Invalid agent credentials")
 
@@ -50,17 +49,19 @@ def agent_add_user():
     agent = Agent.query.get(session.get("agent"))
 
     if request.method == "POST":
-        name         = request.form.get("name", "").strip()
-        phone        = normalize_phone(request.form.get("phone", ""))
-        email        = request.form.get("email", "").strip()
-        age          = request.form.get("age")
-        gender       = request.form.get("gender", "").strip()
-        profession   = request.form.get("profession", "").strip()
-        education    = request.form.get("education", "").strip()
-        city         = request.form.get("city", "").strip()
-        state        = request.form.get("state", "").strip()
-        religion     = request.form.get("religion", "").strip()
-        community    = request.form.get("community", "").strip()
+        name          = request.form.get("name", "").strip()
+        phone         = normalize_phone(request.form.get("phone", ""))
+        email         = request.form.get("email", "").strip()
+        age           = request.form.get("age")
+        gender        = request.form.get("gender", "").strip()
+        height        = request.form.get("height", "").strip()
+        profession    = request.form.get("profession", "").strip()
+        education     = request.form.get("education", "").strip()
+        city          = request.form.get("city", "").strip()
+        state         = request.form.get("state", "").strip()
+        religion      = request.form.get("religion", "").strip()
+        caste         = request.form.get("caste", "").strip()  # ✅ caste
+        community     = request.form.get("community", "").strip()
         mother_tongue = request.form.get("mother_tongue", "").strip()
 
         if not name or not phone:
@@ -75,12 +76,14 @@ def agent_add_user():
             email         = email,
             age           = int(age) if age else None,
             gender        = gender,
+            height        = height,
             profession    = profession,
             education     = education,
             city          = city,
             state         = state,
             location      = f"{city}, {state}".strip(", "),
             religion      = religion,
+            caste         = caste,  # ✅ caste
             community     = community,
             mother_tongue = mother_tongue,
             agent_id      = agent.id

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mangal Vows - Personal Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.search-box {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 10px;
+}
+.search-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+.search-grid label {
+    font-size: 13px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+.search-grid input,
+.search-grid select {
+    width: 100%;
+    padding: 9px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+.result-box {
+    margin-top: 15px;
+    padding: 18px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.result-box h4 {
+    margin: 0 0 8px 0;
+    color: #1d4ed8;
+    font-size: 16px;
+}
+.result-box p {
+    margin: 4px 0;
+    font-size: 13px;
+    color: #374151;
+}
+.contact-locked {
+    margin-top: 10px;
+    padding: 10px;
+    background: #fef3c7;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #92400e;
+    text-align: center;
+}
+.contact-unlocked {
+    margin-top: 10px;
+    padding: 10px;
+    background: #eff6ff;
+    border-radius: 8px;
+    font-size: 13px;
+}
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.badge-male   { background: #dbeafe; color: #1d4ed8; }
+.badge-female { background: #fce7f3; color: #be185d; }
+.subscribe-banner {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    margin: 20px 0;
+}
+.subscribe-banner h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+}
+.subscribe-banner p {
+    margin: 0 0 15px 0;
+    font-size: 13px;
+    opacity: 0.9;
+}
+.subscribe-banner a {
+    background: white;
+    color: #2563eb;
+    padding: 10px 25px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+}
+.user-welcome {
+    background: #eff6ff;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #1e40af;
+    font-weight: 600;
+}
+.secure-btn {
+    width: 100%;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+}
+.logout-btn {
+    display: block;
+    text-align: center;
+    margin-top: 30px;
+    padding: 12px;
+    background: #ef4444;
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+}
+@media (max-width: 600px) {
+    .search-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="background-animation"></div>
+
+<div class="portal-card">
+
+    <div class="header-bar">
+        <div class="brand">
+            <div class="shield">M</div>
+            <span>MANGAL VOWS</span>
+        </div>
+        <div class="top-links">
+            <a href="{{ url_for('user.logout') }}">Logout</a>
+        </div>
+    </div>
+
+    {% if user %}
+    <div class="user-welcome">
+        👋 Welcome, {{ user.name }} |
+        {{ user.religion or "" }} {{ user.caste or "" }} |
+        {{ user.city or "" }}
+    </div>
+    {% endif %}
+
+    <h2>Personal Dashboard</h2>
+    <p class="subtitle">Browse matrimony profiles</p>
+
+    <!-- SUBSCRIPTION BANNER if not subscribed -->
+    {% if not subscribed %}
+    <div class="subscribe-banner">
+        <h3>🔓 Unlock Full Access</h3>
+        <p>Subscribe for ₹500 to view contact details and connect with matches</p>
+        <a href="{{ url_for('subscription.subscribe') }}">Pay ₹500 & Unlock</a>
+    </div>
+    {% endif %}
+
+    <!-- SEARCH -->
+    <div class="search-box">
+        <form action="{{ url_for('user.personal_search') }}" method="GET">
+            <div class="search-grid">
+
+                <div>
+                    <label>Gender</label>
+                    <select name="gender">
+                        <option value="">Any</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Religion</label>
+                    <input type="text" name="religion" placeholder="e.g. Hindu">
+                </div>
+
+                <div>
+                    <label>Caste</label>
+                    <input type="text" name="caste" placeholder="e.g. Brahmin">
+                </div>
+
+                <div>
+                    <label>Location</label>
+                    <input type="text" name="location" placeholder="City or State">
+                </div>
+
+                <div>
+                    <label>Age Min</label>
+                    <input type="number" name="age_min" placeholder="e.g. 24">
+                </div>
+
+                <div>
+                    <label>Age Max</label>
+                    <input type="number" name="age_max" placeholder="e.g. 35">
+                </div>
+
+            </div>
+
+            <button type="submit" class="secure-btn">🔍 Search Profiles</button>
+
+        </form>
+    </div>
+
+    <!-- RESULTS -->
+    {% if users is defined and users %}
+
+        <h3 style="margin-top:25px;">{{ users|length }} Profile(s) Found</h3>
+
+        {% for u in users %}
+        <div class="result-box">
+
+            <span class="badge {{ 'badge-male' if u.gender == 'Male' else 'badge-female' }}">
+                {{ u.gender or "Unknown" }}
+            </span>
+
+            <h4>{{ u.name }}</h4>
+            <p>🎂 Age: {{ u.age or "N/A" }}</p>
+            <p>🛐 Religion: {{ u.religion or "N/A" }}</p>
+            <p>🏛️ Caste: {{ u.caste or "N/A" }}</p>
+            <p>📍 Location: {{ u.location or "N/A" }}</p>
+
+            {% if subscribed %}
+            <!-- ✅ Subscribed — show full details + contact -->
+            <p>💼 Profession: {{ u.profession or "N/A" }}</p>
+            <p>🎓 Education: {{ u.education or "N/A" }}</p>
+            <p>🗣️ Mother Tongue: {{ u.mother_tongue or "N/A" }}</p>
+            <div class="contact-unlocked">
+                📞 <b>Phone:</b> {{ u.phone }} &nbsp;|&nbsp;
+                📧 <b>Email:</b> {{ u.email or "Not provided" }}
+            </div>
+            {% else %}
+            <!-- 🔒 Not subscribed — hide contact details -->
+            <div class="contact-locked">
+                🔒 Subscribe to view contact details & full profile
+            </div>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+
+    {% elif users is defined %}
+        <p style="margin-top:20px; text-align:center; color:gray;">
+            No matching profiles found. Try different filters.
+        </p>
+    {% endif %}
+
+    <a href="{{ url_for('user.logout') }}" class="logout-btn">Logout</a>
+
+    <div class="footer-text">
+        Mangal Vows · Secure · Private · Protected
+    </div>
+
+</div>
+</body>
+</html>

@@ -7,9 +7,6 @@ def generate_uuid():
     return str(uuid.uuid4())
 
 
-# ─────────────────────────────────────────
-# USER MODEL
-# ─────────────────────────────────────────
 class User(db.Model):
     __tablename__ = "users"
 
@@ -28,7 +25,8 @@ class User(db.Model):
     profession = db.Column(db.String(100))
     education  = db.Column(db.String(100))
 
-    # Cultural
+    # Cultural ✅ caste added
+    caste           = db.Column(db.String(100))
     community       = db.Column(db.String(100))
     mother_tongue   = db.Column(db.String(50))
     religion        = db.Column(db.String(50))
@@ -44,7 +42,7 @@ class User(db.Model):
     # Agent link
     agent_id = db.Column(db.String(36), db.ForeignKey("agents.id"))
 
-    # ✅ SUBSCRIPTION (FULL)
+    # Subscription
     subscription_active = db.Column(db.Boolean, default=False)
     subscription_expiry = db.Column(db.DateTime)
 
@@ -52,18 +50,17 @@ class User(db.Model):
 
     def to_dict(self):
         return {
-            "id": self.id,
-            "name": self.name,
-            "phone": self.phone,
-            "age": self.age,
+            "id":         self.id,
+            "name":       self.name,
+            "phone":      self.phone,
+            "age":        self.age,
+            "gender":     self.gender,
+            "caste":      self.caste,
             "profession": self.profession,
-            "location": self.location,
+            "location":   self.location,
         }
 
 
-# ─────────────────────────────────────────
-# AGENT MODEL
-# ─────────────────────────────────────────
 class Agent(db.Model):
     __tablename__ = "agents"
 
@@ -83,17 +80,9 @@ class Agent(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relationship
-    clients = db.relationship(
-        "User",
-        backref="agent",
-        lazy=True
-    )
+    clients = db.relationship("User", backref="agent", lazy=True)
 
 
-# ─────────────────────────────────────────
-# ADMIN MODEL
-# ─────────────────────────────────────────
 class Admin(db.Model):
     __tablename__ = "admins"
 
@@ -101,4 +90,4 @@ class Admin(db.Model):
     username      = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.Text, nullable=False)
 
-    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -1,9 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from models import User, Agent, Admin
 from database import db
-from flask_bcrypt import Bcrypt
 
-bcrypt = Bcrypt()
 admin_bp = Blueprint("admin_bp", __name__)
 
 
@@ -14,6 +12,9 @@ def admin_login():
         password = request.form.get("password", "").strip()
 
         admin = Admin.query.filter_by(username=username).first()
+
+        # ✅ Import bcrypt from app, not a new instance
+        from app import bcrypt
 
         if not admin or not bcrypt.check_password_hash(admin.password_hash, password):
             return render_template("login.html", error="Invalid admin credentials")
