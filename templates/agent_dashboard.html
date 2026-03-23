@@ -4,33 +4,78 @@
     <title>Agent Dashboard</title>
     <style>
         body { margin:0; font-family:Arial; background:#f4f6f9; }
-        .header { background:#4f46e5; color:white; padding:15px 30px; display:flex; justify-content:space-between; }
+        .header {
+            background:#4f46e5;
+            color:white;
+            padding:15px 30px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            flex-wrap:wrap;
+            gap:10px;
+        }
+        .header h2 { margin:0; }
         .container { padding:30px; }
-        .card { background:white; padding:20px; border-radius:10px; box-shadow:0px 4px 10px rgba(0,0,0,0.1); margin-bottom:20px; }
-        .btn { padding:8px 14px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px; font-size:13px; }
+        .card {
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            box-shadow:0px 4px 10px rgba(0,0,0,0.1);
+            margin-bottom:20px;
+        }
+        .btn {
+            padding:8px 14px;
+            background:#4f46e5;
+            color:white;
+            text-decoration:none;
+            border-radius:6px;
+            font-size:13px;
+            white-space:nowrap;
+        }
         .btn-green { background:#16a34a; }
-        .btn-red { background:#ef4444; }
+        .btn-red   { background:#ef4444; }
+        .btn-blue  { background:#0284c7; }
         table { width:100%; border-collapse:collapse; }
         th, td { padding:10px; border-bottom:1px solid #ddd; font-size:13px; }
         th { background:#f1f1f1; }
-        .stats { display:flex; gap:15px; flex-wrap:wrap; margin-bottom:20px; }
-        .stat-card { flex:1 1 150px; background:white; padding:15px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); text-align:center; }
+        .stats {
+            display:flex;
+            gap:15px;
+            flex-wrap:wrap;
+            margin-bottom:20px;
+        }
+        .stat-card {
+            flex:1 1 150px;
+            background:white;
+            padding:15px;
+            border-radius:10px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.08);
+            text-align:center;
+        }
         .stat-card h1 { margin:5px 0; font-size:32px; color:#4f46e5; }
         .stat-card p  { margin:0; font-size:13px; color:#6b7280; }
+        .actions { display:flex; gap:8px; flex-wrap:wrap; }
+        @media (max-width:600px) {
+            .header { flex-direction:column; align-items:flex-start; }
+            th, td  { font-size:11px; padding:7px; }
+            .btn    { font-size:11px; padding:6px 10px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h2>Agent: {{ agent.name }}</h2>
-    <div style="display:flex;gap:10px;align-items:center;">
-        <a href="{{ url_for('agent_bp.agent_add_user') }}" class="btn">+ Add Client</a>
-        <a href="{{ url_for('agent_bp.agent_logout') }}" class="btn btn-red">Logout</a>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <a href="{{ url_for('agent_bp.agent_add_user') }}"    class="btn">➕ Add Client</a>
+        <a href="{{ url_for('agent_bp.agent_bulk_upload') }}" class="btn btn-blue">📊 Bulk Upload</a>
+        <a href="{{ url_for('agent_bp.agent_logout') }}"      class="btn btn-red">Logout</a>
     </div>
 </div>
 
 <div class="container">
 
+    <!-- Stats -->
     <div class="stats">
         <div class="stat-card">
             <h1>{{ users|length }}</h1>
@@ -40,44 +85,71 @@
             <h1>{{ users|selectattr('subscription_active')|list|length }}</h1>
             <p>Active Subscriptions</p>
         </div>
+        <div class="stat-card">
+            <h1>{{ users|rejectattr('subscription_active')|list|length }}</h1>
+            <p>Inactive Subscriptions</p>
+        </div>
     </div>
 
+    <!-- Clients Table -->
     <div class="card">
-        <h3>Your Clients</h3>
+        <h3 style="margin:0 0 15px 0;">
+            Your Clients
+            <span style="font-size:13px;color:#6b7280;font-weight:400;">
+                ({{ users|length }} total)
+            </span>
+        </h3>
+
         {% if users %}
         <table>
             <tr>
+                <th>#</th>
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Caste</th>
                 <th>Location</th>
                 <th>Subscription</th>
-                <th>Action</th>
+                <th>Actions</th>
             </tr>
             {% for u in users %}
             <tr>
-                <td>{{ u.name }}</td>
+                <td>{{ loop.index }}</td>
+                <td><b>{{ u.name }}</b></td>
                 <td>{{ u.phone }}</td>
                 <td>{{ u.caste or "N/A" }}</td>
                 <td>{{ u.location or "N/A" }}</td>
                 <td>
                     {% if u.subscription_active %}
                         <span style="color:green;font-weight:600;">✅ Active</span>
+                        {% if u.subscription_expiry %}
+                        <br>
+                        <span style="font-size:11px;color:#6b7280;">
+                            Until {{ u.subscription_expiry.strftime('%d %b %Y') }}
+                        </span>
+                        {% endif %}
                     {% else %}
                         <span style="color:red;">❌ Inactive</span>
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{{ url_for('proposal_bp.send_proposal', client_id=u.id) }}"
-                       class="btn btn-green">
-                        📲 Send Proposal
-                    </a>
+                    <div class="actions">
+                        <a href="{{ url_for('proposal_bp.send_proposal', client_id=u.id) }}"
+                           class="btn btn-green">
+                            📲 Proposal
+                        </a>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
         </table>
         {% else %}
-        <p style="color:gray;">No clients yet. Add your first client!</p>
+        <div style="text-align:center;padding:40px 0;color:#9ca3af;">
+            <div style="font-size:48px;">👥</div>
+            <p>No clients yet.</p>
+            <a href="{{ url_for('agent_bp.agent_add_user') }}" class="btn">
+                ➕ Add First Client
+            </a>
+        </div>
         {% endif %}
     </div>
 
