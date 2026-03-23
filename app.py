@@ -15,6 +15,7 @@ from routes.user_routes import user
 from routes.subscription_routes import subscription
 from routes.admin_routes import admin_bp
 from routes.agent_routes import agent_bp
+from routes.proposal_routes import proposal_bp  # ✅ new
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -60,6 +61,7 @@ app.register_blueprint(user)
 app.register_blueprint(subscription)
 app.register_blueprint(admin_bp)
 app.register_blueprint(agent_bp)
+app.register_blueprint(proposal_bp)  # ✅ new
 
 
 # ── DB Init ───────────────────────────────────────────
@@ -76,7 +78,7 @@ with app.app_context():
         db.session.commit()
 
 
-# ── Scheduler — runs reminder every day at 9AM ────────
+# ── Scheduler ─────────────────────────────────────────
 
 from routes.reminder import send_expiry_reminders
 

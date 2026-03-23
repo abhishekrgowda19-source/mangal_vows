@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Matches - Mangal Vows</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.proposal-header {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+.proposal-header h3 { margin: 0 0 5px 0; }
+.proposal-header p  { margin: 0; font-size: 13px; opacity: 0.9; }
+.profile-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 15px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.profile-card h4 { margin: 0 0 10px 0; color: #1d4ed8; font-size: 16px; }
+.profile-card p  { margin: 4px 0; font-size: 13px; color: #374151; }
+.contact-box {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+    font-size: 13px;
+}
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.badge-male   { background: #dbeafe; color: #1d4ed8; }
+.badge-female { background: #fce7f3; color: #be185d; }
+.expiry-note {
+    text-align: center;
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 20px;
+}
+</style>
+</head>
+<body>
+<div class="background-animation"></div>
+<div class="portal-card">
+
+    <div class="header-bar">
+        <div class="brand">
+            <div class="shield">M</div>
+            <span>MANGAL VOWS</span>
+        </div>
+    </div>
+
+    <div class="proposal-header">
+        <h3>💍 Your Curated Matches</h3>
+        <p>Handpicked by agent <b>{{ agent.name }}</b> for <b>{{ client.name }}</b></p>
+    </div>
+
+    <p style="text-align:center; font-size:14px; color:#374151; margin-bottom:20px;">
+        {{ profiles|length }} profile(s) selected for you
+    </p>
+
+    {% for p in profiles %}
+    <div class="profile-card">
+
+        <span class="badge {{ 'badge-male' if p.gender == 'Male' else 'badge-female' }}">
+            {{ p.gender or "Unknown" }}
+        </span>
+
+        <h4>{{ p.name }}</h4>
+        <p>🎂 Age: {{ p.age or "N/A" }}</p>
+        <p>📏 Height: {{ p.height or "N/A" }}</p>
+        <p>🛐 Religion: {{ p.religion or "N/A" }}</p>
+        <p>🏛️ Caste: {{ p.caste or "N/A" }}</p>
+        <p>🗣️ Mother Tongue: {{ p.mother_tongue or "N/A" }}</p>
+        <p>💼 Profession: {{ p.profession or "N/A" }}</p>
+        <p>🎓 Education: {{ p.education or "N/A" }}</p>
+        <p>📍 Location: {{ p.location or "N/A" }}</p>
+
+        <div class="contact-box">
+            📞 <b>Phone:</b> {{ p.phone }}&nbsp;&nbsp;|&nbsp;&nbsp;
+            📧 <b>Email:</b> {{ p.email or "Not provided" }}
+        </div>
+
+    </div>
+    {% endfor %}
+
+    <p class="expiry-note">
+        ⏰ This link expires on {{ expires_at.strftime('%d %b %Y') }}
+    </p>
+
+    <div class="footer-text">
+        Mangal Vows · Powered by Gemsyn · Secure & Private
+    </div>
+
+</div>
+</body>
+</html>

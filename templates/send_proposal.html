@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send Proposal - Mangal Vows</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.client-card {
+    background: #eff6ff;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #1e40af;
+}
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 15px 0;
+}
+.profile-item {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+}
+.profile-item:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+.profile-item input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+}
+.profile-item.selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+.badge-male   { background: #dbeafe; color: #1d4ed8; }
+.badge-female { background: #fce7f3; color: #be185d; }
+.success { color: green; text-align: center; font-weight: 600; margin: 10px 0; }
+.error   { color: red;   text-align: center; font-size: 14px; margin: 10px 0; }
+.counter {
+    text-align: center;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 10px;
+}
+@media (max-width: 600px) {
+    .profile-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="background-animation"></div>
+<div class="portal-card">
+
+    <div class="header-bar">
+        <div class="brand">
+            <div class="shield">M</div>
+            <span>MANGAL VOWS</span>
+        </div>
+        <div class="top-links">
+            <a href="{{ url_for('agent_bp.agent_dashboard') }}">← Dashboard</a>
+        </div>
+    </div>
+
+    <h2>Send Proposal</h2>
+    <p class="subtitle">Select 1–5 profiles to send to your client</p>
+
+    <!-- Client Info -->
+    <div class="client-card">
+        👤 <b>Client:</b> {{ client.name }} |
+        📞 {{ client.phone }} |
+        🏛️ {{ client.caste or "N/A" }} |
+        📍 {{ client.location or "N/A" }}
+    </div>
+
+    {% if success %}
+    <p class="success">{{ success }}</p>
+    {% endif %}
+
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST" id="proposalForm">
+
+        <p class="counter" id="counter">0 / 5 profiles selected</p>
+
+        <div class="profile-grid">
+            {% for p in profiles %}
+            <label class="profile-item" id="label-{{ p.id }}">
+                <input type="checkbox"
+                       name="profile_ids"
+                       value="{{ p.id }}"
+                       onchange="updateCounter(this, 'label-{{ p.id }}')">
+                <span class="badge {{ 'badge-male' if p.gender == 'Male' else 'badge-female' }}">
+                    {{ p.gender or "?" }}
+                </span><br>
+                <b>{{ p.name }}</b><br>
+                🎂 {{ p.age or "N/A" }} yrs |
+                🏛️ {{ p.caste or "N/A" }}<br>
+                💼 {{ p.profession or "N/A" }}<br>
+                📍 {{ p.location or "N/A" }}
+            </label>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="secure-btn" style="width:100%">
+            📲 Send to {{ client.name }}'s WhatsApp
+        </button>
+
+    </form>
+
+    <a href="{{ url_for('agent_bp.agent_dashboard') }}"
+       style="display:block;text-align:center;margin-top:15px;color:#2563eb;font-size:14px;">
+        ← Back to Dashboard
+    </a>
+
+</div>
+
+<script>
+function updateCounter(checkbox, labelId) {
+    const checked = document.querySelectorAll('input[name="profile_ids"]:checked');
+    document.getElementById("counter").textContent = checked.length + " / 5 profiles selected";
+
+    const label = document.getElementById(labelId);
+    if (checkbox.checked) {
+        label.classList.add("selected");
+        if (checked.length > 5) {
+            checkbox.checked = false;
+            label.classList.remove("selected");
+            alert("Maximum 5 profiles allowed!");
+        }
+    } else {
+        label.classList.remove("selected");
+    }
+}
+</script>
+</body>
+</html>
