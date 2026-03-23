@@ -9,6 +9,8 @@ from flask_bcrypt import Bcrypt
 
 from routes.user_routes import user
 from routes.subscription_routes import subscription
+from routes.admin_routes import admin_bp
+from routes.agent_routes import agent_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -52,6 +54,8 @@ admin_panel.add_view(AdminAdminView(Admin,  db.session, endpoint="admin_admin"))
 
 app.register_blueprint(user)
 app.register_blueprint(subscription)
+app.register_blueprint(admin_bp)
+app.register_blueprint(agent_bp)
 
 
 # ── DB Init ──────────────────────────────────────────
@@ -59,7 +63,6 @@ app.register_blueprint(subscription)
 with app.app_context():
     db.create_all()
 
-    # ✅ Uses ADMIN_USERNAME and ADMIN_PASSWORD from Render env
     admin_username = os.environ.get("ADMIN_USERNAME", "admin")
     admin_password = os.environ.get("ADMIN_PASSWORD", "change-me-in-prod")
 
