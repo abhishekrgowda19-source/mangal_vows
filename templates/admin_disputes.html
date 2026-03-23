@@ -12,21 +12,58 @@ body { font-family:Arial; background:#f4f6f9; }
 .sidebar a:hover, .sidebar a.active { background:#1f2937; color:white; }
 .main { margin-left:220px; padding:30px; }
 .page-title { font-size:22px; font-weight:700; color:#111827; margin-bottom:20px; }
-.tabs { display:flex; gap:10px; margin-bottom:20px; }
+
+/* Status Tabs */
+.tabs { display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; }
 .tab { padding:8px 20px; border-radius:20px; text-decoration:none; font-size:13px; font-weight:600; background:#e5e7eb; color:#374151; }
 .tab.active { background:#2563eb; color:white; }
-.dispute-card { background:white; border-radius:12px; padding:20px; margin-bottom:15px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
-.dispute-card h4 { font-size:15px; color:#111827; margin-bottom:8px; }
+
+/* Type Filter Tabs */
+.type-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+.type-tab { padding:6px 14px; border-radius:20px; text-decoration:none; font-size:12px; font-weight:600; background:#f3f4f6; color:#6b7280; }
+.type-tab.active { background:#111827; color:white; }
+
+/* Type counts */
+.type-counts { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px; }
+.type-count-card { background:white; border-radius:10px; padding:12px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+.type-count-card .num { font-size:24px; font-weight:700; color:#111827; }
+.type-count-card .lbl { font-size:11px; color:#6b7280; margin-top:3px; }
+
+.dispute-card {
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:15px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+    border-left: 4px solid #e5e7eb;
+}
+.dispute-card.payment_issue     { border-left-color: #2563eb; }
+.dispute-card.subscription_issue { border-left-color: #7c3aed; }
+.dispute-card.profile_report    { border-left-color: #ef4444; }
+.dispute-card.other             { border-left-color: #6b7280; }
+
+.dispute-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+.dispute-card h4 { font-size:15px; color:#111827; margin:0; }
 .dispute-card p  { font-size:13px; color:#6b7280; margin:4px 0; }
 .resolve-form { margin-top:15px; padding-top:15px; border-top:1px solid #f3f4f6; }
-.resolve-form textarea { width:100%; padding:10px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; margin-bottom:10px; }
+.resolve-form textarea { width:100%; padding:10px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; margin-bottom:10px; resize:vertical; }
 .resolve-form select { padding:8px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; margin-right:10px; }
 .btn { padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; }
 .btn-green { background:#16a34a; color:white; }
-.badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
 .badge-red    { background:#fee2e2; color:#ef4444; }
 .badge-green  { background:#dcfce7; color:#16a34a; }
 .badge-yellow { background:#fef3c7; color:#d97706; }
+.badge-blue   { background:#dbeafe; color:#2563eb; }
+.badge-purple { background:#ede9fe; color:#7c3aed; }
+.badge-gray   { background:#f3f4f6; color:#6b7280; }
+.raised-by {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    margin: 8px 0;
+}
 </style>
 </head>
 <body>
@@ -36,31 +73,132 @@ body { font-family:Arial; background:#f4f6f9; }
     <a href="{{ url_for('admin_bp.admin_users') }}">👥 Users</a>
     <a href="{{ url_for('admin_bp.admin_agents') }}">🏢 Agents</a>
     <a href="{{ url_for('admin_bp.admin_payments') }}">💰 Payments</a>
-    <a href="{{ url_for('admin_bp.admin_disputes') }}" class="active">⚠️ Disputes</a>
+    <a href="{{ url_for('admin_bp.admin_disputes') }}" class="active">⚠️ Tickets</a>
     <a href="/admin">⚙️ Flask Admin</a>
     <a href="{{ url_for('admin_bp.admin_logout') }}" style="color:#ef4444;">🚪 Logout</a>
 </div>
-<div class="main">
-    <div class="page-title">⚠️ Dispute Management</div>
 
+<div class="main">
+    <div class="page-title">🎫 Ticket Management</div>
+
+    <!-- ✅ Type Count Cards -->
+    <div class="type-counts">
+        <div class="type-count-card">
+            <div class="num">{{ open_count }}</div>
+            <div class="lbl">Total Open</div>
+        </div>
+        <div class="type-count-card">
+            <div class="num">{{ payment_count }}</div>
+            <div class="lbl">💳 Payment</div>
+        </div>
+        <div class="type-count-card">
+            <div class="num">{{ sub_count }}</div>
+            <div class="lbl">🔐 Subscription</div>
+        </div>
+        <div class="type-count-card">
+            <div class="num">{{ profile_count }}</div>
+            <div class="lbl">👤 Profile</div>
+        </div>
+    </div>
+
+    <!-- Status Tabs -->
     <div class="tabs">
-        <a href="?status=open"     class="tab {{ 'active' if status == 'open' }}">🔴 Open</a>
-        <a href="?status=resolved" class="tab {{ 'active' if status == 'resolved' }}">✅ Resolved</a>
-        <a href="?status=closed"   class="tab {{ 'active' if status == 'closed' }}">🔒 Closed</a>
+        <a href="?status=open"
+           class="tab {{ 'active' if status == 'open' }}">
+           🔴 Open ({{ open_count }})
+        </a>
+        <a href="?status=resolved"
+           class="tab {{ 'active' if status == 'resolved' }}">
+           ✅ Resolved
+        </a>
+        <a href="?status=closed"
+           class="tab {{ 'active' if status == 'closed' }}">
+           🔒 Closed
+        </a>
+    </div>
+
+    <!-- ✅ Type Filter Tabs -->
+    <div class="type-tabs">
+        <a href="?status={{ status }}"
+           class="type-tab {{ 'active' if not type_filter }}">
+           All
+        </a>
+        <a href="?status={{ status }}&type=payment_issue"
+           class="type-tab {{ 'active' if type_filter == 'payment_issue' }}">
+           💳 Payment
+        </a>
+        <a href="?status={{ status }}&type=subscription_issue"
+           class="type-tab {{ 'active' if type_filter == 'subscription_issue' }}">
+           🔐 Subscription
+        </a>
+        <a href="?status={{ status }}&type=profile_report"
+           class="type-tab {{ 'active' if type_filter == 'profile_report' }}">
+           👤 Profile
+        </a>
+        <a href="?status={{ status }}&type=other"
+           class="type-tab {{ 'active' if type_filter == 'other' }}">
+           💬 General
+        </a>
     </div>
 
     {% if disputes %}
         {% for d in disputes %}
-        <div class="dispute-card">
-            <h4>{{ d.subject }}</h4>
-            <p>👤 <b>Reported by:</b> {{ d.reporter.name if d.reporter else "N/A" }}
-               ({{ d.reporter.phone if d.reporter else "" }})</p>
-            <p>🚨 <b>Against:</b> {{ d.reported.name if d.reported else "N/A" }}</p>
+        <div class="dispute-card {{ d.ticket_type }}">
+
+            <div class="dispute-header">
+                <div>
+                    <!-- ✅ Ticket type badge -->
+                    {% if d.ticket_type == "payment_issue" %}
+                        <span class="badge badge-blue">💳 Payment Issue</span>
+                    {% elif d.ticket_type == "subscription_issue" %}
+                        <span class="badge badge-purple">🔐 Subscription</span>
+                    {% elif d.ticket_type == "profile_report" %}
+                        <span class="badge badge-red">👤 Profile Report</span>
+                    {% else %}
+                        <span class="badge badge-gray">💬 General</span>
+                    {% endif %}
+                </div>
+
+                <!-- Status badge -->
+                {% if d.status == "open" %}
+                    <span class="badge badge-red">🔴 Open</span>
+                {% elif d.status == "resolved" %}
+                    <span class="badge badge-green">✅ Resolved</span>
+                {% else %}
+                    <span class="badge badge-gray">🔒 Closed</span>
+                {% endif %}
+            </div>
+
+            <h4 style="margin:10px 0 8px 0;">{{ d.subject }}</h4>
+
+            <!-- ✅ Who raised it — user or agent -->
+            <div class="raised-by">
+                {% if d.reporter_user %}
+                    👤 <b>User:</b> {{ d.reporter_user.name }}
+                    ({{ d.reporter_user.phone }})
+                {% elif d.reporter_agent %}
+                    🏢 <b>Agent:</b> {{ d.reporter_agent.name }}
+                    ({{ d.reporter_agent.email }})
+                {% else %}
+                    ❓ Unknown
+                {% endif %}
+            </div>
+
+            {% if d.reported %}
+            <p>🚨 <b>Against:</b> {{ d.reported.name }} ({{ d.reported.phone }})</p>
+            {% endif %}
+
             <p>📝 <b>Description:</b> {{ d.description }}</p>
             <p>📅 <b>Date:</b> {{ d.created_at.strftime('%d %b %Y %H:%M') }}</p>
 
+            {% if d.resolved_at %}
+            <p>✅ <b>Resolved on:</b> {{ d.resolved_at.strftime('%d %b %Y') }}</p>
+            {% endif %}
+
             {% if d.admin_note %}
-            <p>💬 <b>Admin Note:</b> {{ d.admin_note }}</p>
+            <p style="background:#eff6ff;padding:8px 12px;border-radius:8px;margin-top:8px;">
+                💬 <b>Admin Response:</b> {{ d.admin_note }}
+            </p>
             {% endif %}
 
             {% if d.status == "open" %}
@@ -68,25 +206,29 @@ body { font-family:Arial; background:#f4f6f9; }
                 <form method="POST"
                       action="{{ url_for('admin_bp.resolve_dispute', dispute_id=d.id) }}">
                     <textarea name="admin_note" rows="3"
-                              placeholder="Add resolution note..."></textarea>
+                              placeholder="Add your resolution note here..."></textarea>
                     <div>
                         <select name="status">
-                            <option value="resolved">✅ Resolve</option>
-                            <option value="closed">🔒 Close</option>
+                            <option value="resolved">✅ Mark as Resolved</option>
+                            <option value="closed">🔒 Close Ticket</option>
                         </select>
                         <button type="submit" class="btn btn-green">
-                            Submit Resolution
+                            Submit Response
                         </button>
                     </div>
                 </form>
             </div>
             {% endif %}
+
         </div>
         {% endfor %}
+
     {% else %}
         <div style="text-align:center;padding:40px;color:#9ca3af;">
             <div style="font-size:48px;">✅</div>
-            <p>No {{ status }} disputes!</p>
+            <p style="margin-top:10px;">
+                No {{ type_filter or status }} tickets found!
+            </p>
         </div>
     {% endif %}
 

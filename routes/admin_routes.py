@@ -38,15 +38,15 @@ def admin_login():
 @admin_bp.route("/admin-dashboard")
 @admin_required
 def admin_dashboard():
-    total_users   = User.query.count()
-    total_agents  = Agent.query.count()
-    active_subs   = User.query.filter_by(subscription_active=True).count()
-    total_revenue = db.session.query(db.func.sum(Payment.amount)).scalar() or 0
-    total_revenue = total_revenue // 100  # paise to rupees
+    total_users     = User.query.count()
+    total_agents    = Agent.query.count()
+    active_subs     = User.query.filter_by(subscription_active=True).count()
+    total_revenue   = db.session.query(db.func.sum(Payment.amount)).scalar() or 0
+    total_revenue   = total_revenue // 100
 
-    recent_users  = User.query.order_by(User.created_at.desc()).limit(5).all()
+    recent_users    = User.query.order_by(User.created_at.desc()).limit(5).all()
     recent_payments = Payment.query.order_by(Payment.created_at.desc()).limit(5).all()
-    open_disputes = Dispute.query.filter_by(status="open").count()
+    open_disputes   = Dispute.query.filter_by(status="open").count()
 
     return render_template(
         "admin_dashboard.html",
@@ -126,8 +126,8 @@ def agent_kyc(agent_id, action):
 @admin_bp.route("/admin-payments")
 @admin_required
 def admin_payments():
-    payments = Payment.query.order_by(Payment.created_at.desc()).all()
-    total_revenue     = sum(p.amount for p in payments) // 100
+    payments           = Payment.query.order_by(Payment.created_at.desc()).all()
+    total_revenue      = sum(p.amount for p in payments) // 100
     activation_revenue = sum(p.amount for p in payments if p.payment_type == "activation") // 100
     renewal_revenue    = sum(p.amount for p in payments if p.payment_type == "renewal") // 100
     return render_template(
@@ -144,9 +144,35 @@ def admin_payments():
 @admin_bp.route("/admin-disputes")
 @admin_required
 def admin_disputes():
-    status    = request.args.get("status", "open")
-    disputes  = Dispute.query.filter_by(status=status).order_by(Dispute.created_at.desc()).all()
-    return render_template("admin_disputes.html", disputes=disputes, status=status)
+    status   = request.args.get("status", "open")
+    type_filter = request.args.get("type", "")
+
+    query = Dispute.query.filter_by(status=status)
+
+    # ✅ Filter by ticket type if provided
+    if type_filter:
+        query = query.filter_by(ticket_type=type_filter)
+
+    disputes = query.order_by(Dispute.created_at.desc()).all()
+
+    # ✅ Count by type for admin overview
+    open_count     = Dispute.query.filter_by(status="open").count()
+    payment_count  = Dispute.query.filter_by(status="open", ticket_type="payment_issue").count()
+    sub_count      = Dispute.query.filter_by(status="open", ticket_type="subscription_issue").count()
+    profile_count  = Dispute.query.filter_by(status="open", ticket_type="profile_report").count()
+    general_count  = Dispute.query.filter_by(status="open", ticket_type="other").count()
+
+    return render_template(
+        "admin_disputes.html",
+        disputes=disputes,
+        status=status,
+        type_filter=type_filter,
+        open_count=open_count,
+        payment_count=payment_count,
+        sub_count=sub_count,
+        profile_count=profile_count,
+        general_count=general_count
+    )
 
 
 @admin_bp.route("/admin-resolve-dispute/<dispute_id>", methods=["POST"])
@@ -154,8 +180,8 @@ def admin_disputes():
 def resolve_dispute(dispute_id):
     dispute = Dispute.query.get(dispute_id)
     if dispute:
-        dispute.status     = request.form.get("status", "resolved")
-        dispute.admin_note = request.form.get("admin_note", "")
+        dispute.status      = request.form.get("status", "resolved")
+        dispute.admin_note  = request.form.get("admin_note", "")
         dispute.resolved_at = datetime.utcnow()
         db.session.commit()
     return redirect(url_for("admin_bp.admin_disputes"))

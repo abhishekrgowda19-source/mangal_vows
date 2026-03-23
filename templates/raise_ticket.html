@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raise a Ticket - Mangal Vows</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.form-section { margin-bottom: 15px; }
+.form-section label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+.form-section input,
+.form-section select,
+.form-section textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+.form-section textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+.ticket-types {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.ticket-type-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+.ticket-type-card:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+.ticket-type-card input[type="radio"] { display: none; }
+.ticket-type-card.selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+.ticket-icon { font-size: 24px; margin-bottom: 5px; }
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 14px;
+}
+</style>
+</head>
+<body>
+<div class="background-animation"></div>
+<div class="portal-card">
+
+    <div class="header-bar">
+        <div class="brand">
+            <div class="shield">M</div>
+            <span>MANGAL VOWS</span>
+        </div>
+    </div>
+
+    <h2>🎫 Raise a Ticket</h2>
+    <p class="subtitle">We'll get back to you within 24 hours</p>
+
+    <form method="POST" id="ticketForm">
+
+        <!-- Ticket Type -->
+        <div class="form-section">
+            <label>What is your issue about?</label>
+            <div class="ticket-types">
+
+                <label class="ticket-type-card" id="card-payment"
+                       onclick="selectType('payment_issue', 'card-payment')">
+                    <input type="radio" name="ticket_type" value="payment_issue">
+                    <div class="ticket-icon">💳</div>
+                    Payment Issue
+                </label>
+
+                <label class="ticket-type-card" id="card-subscription"
+                       onclick="selectType('subscription_issue', 'card-subscription')">
+                    <input type="radio" name="ticket_type" value="subscription_issue">
+                    <div class="ticket-icon">🔐</div>
+                    Subscription Issue
+                </label>
+
+                <label class="ticket-type-card" id="card-profile"
+                       onclick="selectType('profile_report', 'card-profile')">
+                    <input type="radio" name="ticket_type" value="profile_report">
+                    <div class="ticket-icon">👤</div>
+                    Profile Issue
+                </label>
+
+                <label class="ticket-type-card" id="card-other"
+                       onclick="selectType('other', 'card-other')">
+                    <input type="radio" name="ticket_type" value="other">
+                    <div class="ticket-icon">💬</div>
+                    Other
+                </label>
+
+            </div>
+        </div>
+
+        <!-- Subject -->
+        <div class="form-section">
+            <label>Subject *</label>
+            <input type="text" name="subject"
+                   placeholder="Brief description of your issue"
+                   required>
+        </div>
+
+        <!-- Description -->
+        <div class="form-section">
+            <label>Description *</label>
+            <textarea name="description"
+                      placeholder="Please describe your issue in detail. Include any relevant details like transaction ID, phone number, etc."
+                      required></textarea>
+        </div>
+
+        <button type="submit" class="secure-btn" style="width:100%">
+            🎫 Submit Ticket
+        </button>
+
+    </form>
+
+    <!-- Back link based on who is logged in -->
+    {% if agent %}
+    <a href="{{ url_for('agent_bp.agent_dashboard') }}" class="back-link">
+        ← Back to Dashboard
+    </a>
+    <a href="{{ url_for('agent_bp.agent_my_tickets') }}"
+       style="display:block;text-align:center;margin-top:8px;color:#6b7280;font-size:13px;">
+        View my tickets →
+    </a>
+    {% else %}
+    <a href="{{ url_for('user.dashboard') }}" class="back-link">
+        ← Back to Dashboard
+    </a>
+    <a href="{{ url_for('user.my_tickets') }}"
+       style="display:block;text-align:center;margin-top:8px;color:#6b7280;font-size:13px;">
+        View my tickets →
+    </a>
+    {% endif %}
+
+</div>
+
+<script>
+function selectType(value, cardId) {
+    // Remove selected from all
+    document.querySelectorAll('.ticket-type-card').forEach(c => c.classList.remove('selected'));
+    // Add selected to clicked
+    document.getElementById(cardId).classList.add('selected');
+    // Set radio value
+    document.querySelector(`input[value="${value}"]`).checked = true;
+}
+</script>
+</body>
+</html>

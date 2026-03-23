@@ -68,8 +68,6 @@
 }
 .badge-male   { background: #dbeafe; color: #1d4ed8; }
 .badge-female { background: #fce7f3; color: #be185d; }
-
-/* ✅ Compatibility Score */
 .score-badge {
     position: absolute;
     top: 15px;
@@ -82,7 +80,6 @@
 .score-excellent { background: #dcfce7; color: #16a34a; }
 .score-good      { background: #fef3c7; color: #d97706; }
 .score-low       { background: #fee2e2; color: #ef4444; }
-
 .score-bar-container {
     margin: 8px 0;
     background: #f3f4f6;
@@ -98,7 +95,6 @@
 .score-bar-excellent { background: #16a34a; }
 .score-bar-good      { background: #d97706; }
 .score-bar-low       { background: #ef4444; }
-
 .secure-btn {
     padding: 10px 20px;
     background: #2563eb;
@@ -124,11 +120,28 @@
     background: #eff6ff;
     border-radius: 10px;
     padding: 12px 16px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     font-size: 14px;
     color: #1e40af;
     font-weight: 600;
 }
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.quick-actions a {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+.btn-ticket  { background: #2563eb; color: white; }
+.btn-myticket { background: #f3f4f6; color: #374151; }
 .result-footer {
     display: flex;
     justify-content: space-between;
@@ -144,6 +157,7 @@
 @media (max-width: 600px) {
     .search-grid { grid-template-columns: 1fr; }
     .score-badge { position: static; display: inline-block; margin-bottom: 8px; }
+    .quick-actions { flex-direction: column; }
 }
 </style>
 </head>
@@ -170,6 +184,16 @@
         {{ user.city or "" }}
     </div>
     {% endif %}
+
+    <!-- ✅ Quick Actions -->
+    <div class="quick-actions">
+        <a href="{{ url_for('user.raise_ticket') }}" class="btn-ticket">
+            🎫 Raise a Ticket
+        </a>
+        <a href="{{ url_for('user.my_tickets') }}" class="btn-myticket">
+            📋 My Tickets
+        </a>
+    </div>
 
     <h2>Find Your Match</h2>
     <p class="subtitle">Search from verified profiles</p>
@@ -245,7 +269,6 @@
             {% for u, score in users %}
             <div class="result-box">
 
-                <!-- ✅ Score Badge -->
                 {% if score >= 80 %}
                     <span class="score-badge score-excellent">⭐ {{ score }}% Match</span>
                 {% elif score >= 50 %}
@@ -260,7 +283,6 @@
 
                 <h4>{{ u.name }}</h4>
 
-                <!-- ✅ Score Bar -->
                 <div class="score-bar-container">
                     <div class="score-bar
                         {% if score >= 80 %}score-bar-excellent

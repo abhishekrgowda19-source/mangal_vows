@@ -32,37 +32,24 @@ def subscription_redirect(user_data):
 # ✅ Compatibility Score Calculator
 def calculate_score(current_user, profile):
     score = 0
-
-    # Same religion → +30
     if current_user.religion and profile.religion:
         if current_user.religion.strip().lower() == profile.religion.strip().lower():
             score += 30
-
-    # Same caste → +25
     if current_user.caste and profile.caste:
         if current_user.caste.strip().lower() == profile.caste.strip().lower():
             score += 25
-
-    # Same mother tongue → +15
     if current_user.mother_tongue and profile.mother_tongue:
         if current_user.mother_tongue.strip().lower() == profile.mother_tongue.strip().lower():
             score += 15
-
-    # Age within 5 years → +15
     if current_user.age and profile.age:
         if abs(current_user.age - profile.age) <= 5:
             score += 15
-
-    # Same state → +10
     if current_user.state and profile.state:
         if current_user.state.strip().lower() == profile.state.strip().lower():
             score += 10
-
-    # Same community → +5
     if current_user.community and profile.community:
         if current_user.community.strip().lower() == profile.community.strip().lower():
             score += 5
-
     return score
 
 
@@ -231,13 +218,11 @@ def search():
 
     raw_users = query.all()
 
-    # ✅ Calculate score for each profile
     scored_users = []
     for u in raw_users:
         score = calculate_score(user_data, u)
         scored_users.append((u, score))
 
-    # ✅ Sort by score — highest first
     scored_users.sort(key=lambda x: x[1], reverse=True)
 
     return render_template(
@@ -263,17 +248,62 @@ def report_profile(reported_id):
 
     if request.method == "POST":
         dispute = Dispute(
-            raised_by   = user_data.id,
-            against     = reported_id,
-            subject     = request.form.get("subject", "").strip(),
-            description = request.form.get("description", "").strip(),
-            status      = "open"
+            raised_by_user = user_data.id,
+            against        = reported_id,
+            ticket_type    = "profile_report",
+            subject        = request.form.get("subject", "").strip(),
+            description    = request.form.get("description", "").strip(),
+            status         = "open"
         )
         db.session.add(dispute)
         db.session.commit()
         return redirect(url_for("user.dashboard"))
 
     return render_template("report.html", reported=reported)
+
+
+# ── Raise Ticket ──────────────────────────────────────
+
+@user.route("/raise-ticket", methods=["GET", "POST"])
+def raise_ticket():
+    if session.get("role") != "user":
+        return redirect(url_for("user.home"))
+
+    user_data = User.query.filter_by(phone=session.get("user")).first()
+    if not user_data:
+        return redirect(url_for("user.home"))
+
+    if request.method == "POST":
+        dispute = Dispute(
+            raised_by_user = user_data.id,
+            ticket_type    = request.form.get("ticket_type", "general"),
+            subject        = request.form.get("subject", "").strip(),
+            description    = request.form.get("description", "").strip(),
+            status         = "open"
+        )
+        db.session.add(dispute)
+        db.session.commit()
+        return redirect(url_for("user.my_tickets"))
+
+    return render_template("raise_ticket.html", user=user_data)
+
+
+# ── My Tickets ────────────────────────────────────────
+
+@user.route("/my-tickets")
+def my_tickets():
+    if session.get("role") != "user":
+        return redirect(url_for("user.home"))
+
+    user_data = User.query.filter_by(phone=session.get("user")).first()
+    if not user_data:
+        return redirect(url_for("user.home"))
+
+    tickets = Dispute.query.filter_by(
+        raised_by_user=user_data.id
+    ).order_by(Dispute.created_at.desc()).all()
+
+    return render_template("my_tickets.html", tickets=tickets, user=user_data)
 
 
 # ── Logout ────────────────────────────────────────────

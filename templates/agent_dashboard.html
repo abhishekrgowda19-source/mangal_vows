@@ -32,9 +32,11 @@
             font-size:13px;
             white-space:nowrap;
         }
-        .btn-green { background:#16a34a; }
-        .btn-red   { background:#ef4444; }
-        .btn-blue  { background:#0284c7; }
+        .btn-green  { background:#16a34a; }
+        .btn-red    { background:#ef4444; }
+        .btn-blue   { background:#0284c7; }
+        .btn-yellow { background:#f59e0b; }
+        .btn-gray   { background:#6b7280; }
         table { width:100%; border-collapse:collapse; }
         th, td { padding:10px; border-bottom:1px solid #ddd; font-size:13px; }
         th { background:#f1f1f1; }
@@ -69,6 +71,8 @@
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <a href="{{ url_for('agent_bp.agent_add_user') }}"    class="btn">➕ Add Client</a>
         <a href="{{ url_for('agent_bp.agent_bulk_upload') }}" class="btn btn-blue">📊 Bulk Upload</a>
+        <a href="{{ url_for('agent_bp.agent_raise_ticket') }}" class="btn btn-yellow">🎫 Raise Ticket</a>
+        <a href="{{ url_for('agent_bp.agent_my_tickets') }}"  class="btn btn-gray">📋 My Tickets</a>
         <a href="{{ url_for('agent_bp.agent_logout') }}"      class="btn btn-red">Logout</a>
     </div>
 </div>

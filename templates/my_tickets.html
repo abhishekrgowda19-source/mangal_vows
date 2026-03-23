@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Tickets - Mangal Vows</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.ticket-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 15px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-left: 4px solid #e5e7eb;
+}
+.ticket-card.open     { border-left-color: #ef4444; }
+.ticket-card.resolved { border-left-color: #16a34a; }
+.ticket-card.closed   { border-left-color: #6b7280; }
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+.ticket-header h4 {
+    margin: 0;
+    font-size: 15px;
+    color: #111827;
+}
+.badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.badge-red    { background: #fee2e2; color: #ef4444; }
+.badge-green  { background: #dcfce7; color: #16a34a; }
+.badge-gray   { background: #f3f4f6; color: #6b7280; }
+.badge-yellow { background: #fef3c7; color: #d97706; }
+.ticket-meta {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+.ticket-desc {
+    font-size: 13px;
+    color: #374151;
+    margin-bottom: 10px;
+}
+.admin-reply {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13px;
+    color: #1e40af;
+    margin-top: 10px;
+}
+.empty-state {
+    text-align: center;
+    padding: 40px 0;
+    color: #9ca3af;
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 10px; }
+.type-icon {
+    font-size: 11px;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #6b7280;
+    margin-right: 8px;
+}
+</style>
+</head>
+<body>
+<div class="background-animation"></div>
+<div class="portal-card">
+
+    <div class="header-bar">
+        <div class="brand">
+            <div class="shield">M</div>
+            <span>MANGAL VOWS</span>
+        </div>
+    </div>
+
+    <h2>🎫 My Tickets</h2>
+    <p class="subtitle">Track your support requests</p>
+
+    <!-- Raise new ticket button -->
+    {% if agent %}
+    <a href="{{ url_for('agent_bp.agent_raise_ticket') }}"
+       class="secure-btn"
+       style="display:block;text-align:center;margin-bottom:20px;text-decoration:none;">
+        + Raise New Ticket
+    </a>
+    {% else %}
+    <a href="{{ url_for('user.raise_ticket') }}"
+       class="secure-btn"
+       style="display:block;text-align:center;margin-bottom:20px;text-decoration:none;">
+        + Raise New Ticket
+    </a>
+    {% endif %}
+
+    {% if tickets %}
+        {% for t in tickets %}
+        <div class="ticket-card {{ t.status }}">
+
+            <div class="ticket-header">
+                <div>
+                    <span class="type-icon">
+                        {% if t.ticket_type == "payment_issue" %}💳 Payment
+                        {% elif t.ticket_type == "subscription_issue" %}🔐 Subscription
+                        {% elif t.ticket_type == "profile_report" %}👤 Profile
+                        {% else %}💬 General{% endif %}
+                    </span>
+                    <h4 style="display:inline;">{{ t.subject }}</h4>
+                </div>
+                {% if t.status == "open" %}
+                    <span class="badge badge-red">🔴 Open</span>
+                {% elif t.status == "resolved" %}
+                    <span class="badge badge-green">✅ Resolved</span>
+                {% else %}
+                    <span class="badge badge-gray">🔒 Closed</span>
+                {% endif %}
+            </div>
+
+            <div class="ticket-meta">
+                📅 {{ t.created_at.strftime('%d %b %Y %H:%M') }}
+                {% if t.resolved_at %}
+                 → Resolved on {{ t.resolved_at.strftime('%d %b %Y') }}
+                {% endif %}
+            </div>
+
+            <div class="ticket-desc">{{ t.description }}</div>
+
+            {% if t.admin_note %}
+            <div class="admin-reply">
+                💬 <b>Admin Response:</b> {{ t.admin_note }}
+            </div>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+
+    {% else %}
+        <div class="empty-state">
+            <div class="icon">🎫</div>
+            <p>No tickets raised yet.</p>
+            <p style="font-size:13px;">If you have any issues, raise a ticket and we'll help you!</p>
+        </div>
+    {% endif %}
+
+    <!-- Back link -->
+    {% if agent %}
+    <a href="{{ url_for('agent_bp.agent_dashboard') }}"
+       style="display:block;text-align:center;margin-top:20px;color:#2563eb;font-size:14px;text-decoration:none;">
+        ← Back to Dashboard
+    </a>
+    {% else %}
+    <a href="{{ url_for('user.dashboard') }}"
+       style="display:block;text-align:center;margin-top:20px;color:#2563eb;font-size:14px;text-decoration:none;">
+        ← Back to Dashboard
+    </a>
+    {% endif %}
+
+    <div class="footer-text">Mangal Vows · Support · 24hr response</div>
+
+</div>
+</body>
+</html>

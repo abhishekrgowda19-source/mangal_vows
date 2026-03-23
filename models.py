@@ -9,7 +9,6 @@ def generate_uuid():
 
 class User(db.Model):
     __tablename__ = "users"
-
     id                  = db.Column(db.String(36), primary_key=True, default=generate_uuid)
     name                = db.Column(db.String(100), nullable=False)
     name3               = db.Column(db.String(3))
@@ -43,7 +42,6 @@ class User(db.Model):
 
 class Agent(db.Model):
     __tablename__ = "agents"
-
     id               = db.Column(db.String(36), primary_key=True, default=generate_uuid)
     name             = db.Column(db.String(100), nullable=False)
     email            = db.Column(db.String(120), unique=True, nullable=False)
@@ -60,7 +58,6 @@ class Agent(db.Model):
 
 class Admin(db.Model):
     __tablename__ = "admins"
-
     id            = db.Column(db.String(36), primary_key=True, default=generate_uuid)
     username      = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.Text, nullable=False)
@@ -69,7 +66,6 @@ class Admin(db.Model):
 
 class Proposal(db.Model):
     __tablename__ = "proposals"
-
     id          = db.Column(db.String(36), primary_key=True, default=generate_uuid)
     token       = db.Column(db.String(64), unique=True, nullable=False)
     agent_id    = db.Column(db.String(36), db.ForeignKey("agents.id"))
@@ -82,35 +78,43 @@ class Proposal(db.Model):
     client = db.relationship("User", foreign_keys=[client_id])
 
 
-# ✅ NEW — Payment tracking
 class Payment(db.Model):
     __tablename__ = "payments"
-
-    id             = db.Column(db.String(36), primary_key=True, default=generate_uuid)
-    user_id        = db.Column(db.String(36), db.ForeignKey("users.id"))
+    id                  = db.Column(db.String(36), primary_key=True, default=generate_uuid)
+    user_id             = db.Column(db.String(36), db.ForeignKey("users.id"))
     razorpay_order_id   = db.Column(db.String(100))
     razorpay_payment_id = db.Column(db.String(100))
-    amount         = db.Column(db.Integer)   # in paise
-    payment_type   = db.Column(db.String(20))  # "activation" or "renewal"
-    status         = db.Column(db.String(20), default="success")
-    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+    amount              = db.Column(db.Integer)
+    payment_type        = db.Column(db.String(20))
+    status              = db.Column(db.String(20), default="success")
+    created_at          = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", backref="payments")
 
 
-# ✅ NEW — Dispute management
 class Dispute(db.Model):
     __tablename__ = "disputes"
 
-    id          = db.Column(db.String(36), primary_key=True, default=generate_uuid)
-    raised_by   = db.Column(db.String(36), db.ForeignKey("users.id"))
-    against     = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=True)
-    subject     = db.Column(db.String(200))
-    description = db.Column(db.Text)
-    status      = db.Column(db.String(20), default="open")  # open, resolved, closed
-    admin_note  = db.Column(db.Text)
-    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
-    resolved_at = db.Column(db.DateTime)
+    id           = db.Column(db.String(36), primary_key=True, default=generate_uuid)
 
-    reporter = db.relationship("User", foreign_keys=[raised_by])
-    reported = db.relationship("User", foreign_keys=[against])
+    # ✅ Who raised it — either user or agent
+    raised_by_user  = db.Column(db.String(36), db.ForeignKey("users.id"),  nullable=True)
+    raised_by_agent = db.Column(db.String(36), db.ForeignKey("agents.id"), nullable=True)
+
+    # ✅ Reported against (optional — only for profile reports)
+    against      = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=True)
+
+    # ✅ Ticket type
+    ticket_type  = db.Column(db.String(50), default="general")
+    # general, payment_issue, profile_report, subscription_issue, other
+
+    subject      = db.Column(db.String(200))
+    description  = db.Column(db.Text)
+    status       = db.Column(db.String(20), default="open")
+    admin_note   = db.Column(db.Text)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+    resolved_at  = db.Column(db.DateTime)
+
+    reporter_user  = db.relationship("User",  foreign_keys=[raised_by_user])
+    reporter_agent = db.relationship("Agent", foreign_keys=[raised_by_agent])
+    reported       = db.relationship("User",  foreign_keys=[against])
