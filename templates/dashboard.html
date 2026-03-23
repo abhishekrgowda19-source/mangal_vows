@@ -39,6 +39,7 @@
     border-radius: 10px;
     border: 1px solid #e5e7eb;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    position: relative;
 }
 .result-box h4 {
     margin: 0 0 8px 0;
@@ -50,7 +51,7 @@
     font-size: 13px;
     color: #374151;
 }
-.result-box .contact {
+.contact {
     margin-top: 10px;
     padding: 10px;
     background: #eff6ff;
@@ -67,6 +68,37 @@
 }
 .badge-male   { background: #dbeafe; color: #1d4ed8; }
 .badge-female { background: #fce7f3; color: #be185d; }
+
+/* ✅ Compatibility Score */
+.score-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+}
+.score-excellent { background: #dcfce7; color: #16a34a; }
+.score-good      { background: #fef3c7; color: #d97706; }
+.score-low       { background: #fee2e2; color: #ef4444; }
+
+.score-bar-container {
+    margin: 8px 0;
+    background: #f3f4f6;
+    border-radius: 10px;
+    height: 6px;
+    overflow: hidden;
+}
+.score-bar {
+    height: 6px;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+.score-bar-excellent { background: #16a34a; }
+.score-bar-good      { background: #d97706; }
+.score-bar-low       { background: #ef4444; }
+
 .secure-btn {
     padding: 10px 20px;
     background: #2563eb;
@@ -108,11 +140,10 @@
     color: #ef4444;
     text-decoration: none;
 }
-.report-link:hover {
-    text-decoration: underline;
-}
+.report-link:hover { text-decoration: underline; }
 @media (max-width: 600px) {
     .search-grid { grid-template-columns: 1fr; }
+    .score-badge { position: static; display: inline-block; margin-bottom: 8px; }
 }
 </style>
 </head>
@@ -143,12 +174,10 @@
     <h2>Find Your Match</h2>
     <p class="subtitle">Search from verified profiles</p>
 
-    <!-- SEARCH SECTION -->
+    <!-- SEARCH -->
     <div class="search-box">
         <form action="{{ url_for('user.search') }}" method="GET">
-
             <div class="search-grid">
-
                 <div>
                     <label>Gender</label>
                     <select name="gender">
@@ -157,102 +186,146 @@
                         <option value="Female">Female</option>
                     </select>
                 </div>
-
                 <div>
                     <label>Religion</label>
                     <input type="text" name="religion" placeholder="e.g. Hindu">
                 </div>
-
                 <div>
                     <label>Caste</label>
                     <input type="text" name="caste" placeholder="e.g. Brahmin">
                 </div>
-
                 <div>
                     <label>Community</label>
                     <input type="text" name="community" placeholder="e.g. Iyer">
                 </div>
-
                 <div>
                     <label>Age Min</label>
                     <input type="number" name="age_min" placeholder="e.g. 24">
                 </div>
-
                 <div>
                     <label>Age Max</label>
                     <input type="number" name="age_max" placeholder="e.g. 35">
                 </div>
-
                 <div>
                     <label>Mother Tongue</label>
                     <input type="text" name="mother_tongue" placeholder="e.g. Tamil">
                 </div>
-
                 <div>
                     <label>Location</label>
                     <input type="text" name="location" placeholder="City or State">
                 </div>
-
                 <div>
                     <label>Profession</label>
                     <input type="text" name="profession" placeholder="e.g. Engineer">
                 </div>
-
                 <div>
                     <label>Height</label>
                     <input type="text" name="height" placeholder="e.g. 5'6">
                 </div>
-
             </div>
-
             <button type="submit" class="secure-btn" style="width:100%">
                 🔍 Search Profiles
             </button>
-
         </form>
     </div>
 
     <!-- RESULTS -->
     {% if users is defined and users %}
 
-        <h3 style="margin-top:25px;">{{ users|length }} Profile(s) Found</h3>
-
-        {% for u in users %}
-        <div class="result-box">
-
-            <span class="badge {{ 'badge-male' if u.gender == 'Male' else 'badge-female' }}">
-                {{ u.gender or "Unknown" }}
+        <h3 style="margin-top:25px;">
+            {{ users|length }} Profile(s) Found
+            {% if scored %}
+            <span style="font-size:13px; font-weight:400; color:#6b7280;">
+                — sorted by compatibility
             </span>
+            {% endif %}
+        </h3>
 
-            <h4>{{ u.name }}</h4>
+        {% if scored %}
+            {% for u, score in users %}
+            <div class="result-box">
 
-            <p>🎂 Age: {{ u.age or "N/A" }}</p>
-            <p>💼 Profession: {{ u.profession or "N/A" }}</p>
-            <p>📍 Location: {{ u.location or "N/A" }}</p>
-            <p>🛐 Religion: {{ u.religion or "N/A" }}</p>
-            <p>🏛️ Caste: {{ u.caste or "N/A" }}</p>
-            <p>🗣️ Mother Tongue: {{ u.mother_tongue or "N/A" }}</p>
-            <p>🎓 Education: {{ u.education or "N/A" }}</p>
+                <!-- ✅ Score Badge -->
+                {% if score >= 80 %}
+                    <span class="score-badge score-excellent">⭐ {{ score }}% Match</span>
+                {% elif score >= 50 %}
+                    <span class="score-badge score-good">👍 {{ score }}% Match</span>
+                {% else %}
+                    <span class="score-badge score-low">{{ score }}% Match</span>
+                {% endif %}
 
-            <!-- Contact Details -->
-            <div class="contact">
-                📞 <b>Phone:</b> {{ u.phone }} &nbsp;|&nbsp;
-                📧 <b>Email:</b> {{ u.email or "Not provided" }}
-            </div>
-
-            <!-- ✅ Report button -->
-            <div class="result-footer">
-                <span style="font-size:12px; color:#9ca3af;">
-                    Profile ID: {{ u.id[:8] }}...
+                <span class="badge {{ 'badge-male' if u.gender == 'Male' else 'badge-female' }}">
+                    {{ u.gender or "Unknown" }}
                 </span>
-                <a href="{{ url_for('user.report_profile', reported_id=u.id) }}"
-                   class="report-link">
-                    🚨 Report this profile
-                </a>
-            </div>
 
-        </div>
-        {% endfor %}
+                <h4>{{ u.name }}</h4>
+
+                <!-- ✅ Score Bar -->
+                <div class="score-bar-container">
+                    <div class="score-bar
+                        {% if score >= 80 %}score-bar-excellent
+                        {% elif score >= 50 %}score-bar-good
+                        {% else %}score-bar-low{% endif %}"
+                        style="width: {{ score }}%">
+                    </div>
+                </div>
+
+                <p>🎂 Age: {{ u.age or "N/A" }}</p>
+                <p>💼 Profession: {{ u.profession or "N/A" }}</p>
+                <p>📍 Location: {{ u.location or "N/A" }}</p>
+                <p>🛐 Religion: {{ u.religion or "N/A" }}</p>
+                <p>🏛️ Caste: {{ u.caste or "N/A" }}</p>
+                <p>🗣️ Mother Tongue: {{ u.mother_tongue or "N/A" }}</p>
+                <p>🎓 Education: {{ u.education or "N/A" }}</p>
+
+                <div class="contact">
+                    📞 <b>Phone:</b> {{ u.phone }} &nbsp;|&nbsp;
+                    📧 <b>Email:</b> {{ u.email or "Not provided" }}
+                </div>
+
+                <div class="result-footer">
+                    <span style="font-size:12px; color:#9ca3af;">
+                        Profile ID: {{ u.id[:8] }}...
+                    </span>
+                    <a href="{{ url_for('user.report_profile', reported_id=u.id) }}"
+                       class="report-link">
+                        🚨 Report this profile
+                    </a>
+                </div>
+
+            </div>
+            {% endfor %}
+
+        {% else %}
+            {% for u in users %}
+            <div class="result-box">
+                <span class="badge {{ 'badge-male' if u.gender == 'Male' else 'badge-female' }}">
+                    {{ u.gender or "Unknown" }}
+                </span>
+                <h4>{{ u.name }}</h4>
+                <p>🎂 Age: {{ u.age or "N/A" }}</p>
+                <p>💼 Profession: {{ u.profession or "N/A" }}</p>
+                <p>📍 Location: {{ u.location or "N/A" }}</p>
+                <p>🛐 Religion: {{ u.religion or "N/A" }}</p>
+                <p>🏛️ Caste: {{ u.caste or "N/A" }}</p>
+                <p>🗣️ Mother Tongue: {{ u.mother_tongue or "N/A" }}</p>
+                <p>🎓 Education: {{ u.education or "N/A" }}</p>
+                <div class="contact">
+                    📞 <b>Phone:</b> {{ u.phone }} &nbsp;|&nbsp;
+                    📧 <b>Email:</b> {{ u.email or "Not provided" }}
+                </div>
+                <div class="result-footer">
+                    <span style="font-size:12px; color:#9ca3af;">
+                        Profile ID: {{ u.id[:8] }}...
+                    </span>
+                    <a href="{{ url_for('user.report_profile', reported_id=u.id) }}"
+                       class="report-link">
+                        🚨 Report this profile
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
 
     {% elif users is defined %}
         <p style="margin-top:20px; text-align:center; color:gray;">

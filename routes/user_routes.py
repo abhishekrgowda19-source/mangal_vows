@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
-from models import User
+from models import User, Dispute
 from database import db
 from datetime import datetime
 
@@ -27,6 +27,43 @@ def subscription_redirect(user_data):
         return redirect(url_for("subscription.subscribe"))
     else:
         return redirect(url_for("subscription.renew"))
+
+
+# ✅ Compatibility Score Calculator
+def calculate_score(current_user, profile):
+    score = 0
+
+    # Same religion → +30
+    if current_user.religion and profile.religion:
+        if current_user.religion.strip().lower() == profile.religion.strip().lower():
+            score += 30
+
+    # Same caste → +25
+    if current_user.caste and profile.caste:
+        if current_user.caste.strip().lower() == profile.caste.strip().lower():
+            score += 25
+
+    # Same mother tongue → +15
+    if current_user.mother_tongue and profile.mother_tongue:
+        if current_user.mother_tongue.strip().lower() == profile.mother_tongue.strip().lower():
+            score += 15
+
+    # Age within 5 years → +15
+    if current_user.age and profile.age:
+        if abs(current_user.age - profile.age) <= 5:
+            score += 15
+
+    # Same state → +10
+    if current_user.state and profile.state:
+        if current_user.state.strip().lower() == profile.state.strip().lower():
+            score += 10
+
+    # Same community → +5
+    if current_user.community and profile.community:
+        if current_user.community.strip().lower() == profile.community.strip().lower():
+            score += 5
+
+    return score
 
 
 @user.route("/")
@@ -76,7 +113,7 @@ def personal_login():
     return redirect(url_for("user.dashboard"))
 
 
-# ── Self Registration (New User) ──────────────────────
+# ── Self Registration ─────────────────────────────────
 
 @user.route("/self-register", methods=["GET", "POST"])
 def self_register():
@@ -96,40 +133,30 @@ def self_register():
         city          = request.form.get("city", "").strip()
         state         = request.form.get("state", "").strip()
 
-        # Validation
         if not name or not phone:
             return render_template("self_register.html", error="Name and phone are required")
 
         if User.query.filter_by(phone=phone).first():
-            return render_template("self_register.html", error="Phone already registered! Please login instead.")
+            return render_template("self_register.html",
+                                   error="Phone already registered! Please login instead.")
 
-        # ✅ Save new user to DB (visible in admin + agent panel)
         new_user = User(
-            name          = name,
-            phone         = phone,
-            email         = email,
-            age           = int(age) if age else None,
-            gender        = gender,
-            height        = height,
-            religion      = religion,
-            caste         = caste,
-            community     = community,
-            mother_tongue = mother_tongue,
-            profession    = profession,
-            education     = education,
-            city          = city,
-            state         = state,
-            location      = f"{city}, {state}".strip(", "),
-            agent_id      = None  # ✅ No agent — self registered
+            name=name, phone=phone, email=email,
+            age=int(age) if age else None,
+            gender=gender, height=height,
+            religion=religion, caste=caste,
+            community=community, mother_tongue=mother_tongue,
+            profession=profession, education=education,
+            city=city, state=state,
+            location=f"{city}, {state}".strip(", "),
+            agent_id=None
         )
         db.session.add(new_user)
         db.session.commit()
 
-        # ✅ Auto login after registration
         session["user"] = new_user.phone
         session["role"] = "user"
 
-        # ✅ Redirect to ₹500 payment
         return redirect(url_for("subscription.subscribe"))
 
     return render_template("self_register.html")
@@ -152,7 +179,7 @@ def dashboard():
     return render_template("dashboard.html", user=user_data)
 
 
-# ── Search ────────────────────────────────────────────
+# ── Search with Compatibility Score ──────────────────
 
 @user.route("/search")
 def search():
@@ -202,17 +229,26 @@ def search():
     if gender:
         query = query.filter(User.gender == gender)
 
-    users = query.all()
-    return render_template("dashboard.html", users=users, user=user_data)
+    raw_users = query.all()
+
+    # ✅ Calculate score for each profile
+    scored_users = []
+    for u in raw_users:
+        score = calculate_score(user_data, u)
+        scored_users.append((u, score))
+
+    # ✅ Sort by score — highest first
+    scored_users.sort(key=lambda x: x[1], reverse=True)
+
+    return render_template(
+        "dashboard.html",
+        users=scored_users,
+        user=user_data,
+        scored=True
+    )
 
 
-# ── Logout ────────────────────────────────────────────
-
-@user.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("user.home"))
-# ── Report a Profile ──────────────────────────────────
+# ── Report Profile ────────────────────────────────────
 
 @user.route("/report/<reported_id>", methods=["GET", "POST"])
 def report_profile(reported_id):
@@ -226,7 +262,6 @@ def report_profile(reported_id):
         return redirect(url_for("user.dashboard"))
 
     if request.method == "POST":
-        from models import Dispute
         dispute = Dispute(
             raised_by   = user_data.id,
             against     = reported_id,
@@ -239,3 +274,11 @@ def report_profile(reported_id):
         return redirect(url_for("user.dashboard"))
 
     return render_template("report.html", reported=reported)
+
+
+# ── Logout ────────────────────────────────────────────
+
+@user.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("user.home"))
