@@ -1,32 +1,27 @@
-from flask import Flask, redirect
+import os
+from flask import Flask, redirect, session
 from config import Config
 from database import db
 from models import User, Agent, Admin
 from flask_admin import Admin as FlaskAdmin
 from flask_admin.contrib.sqla import ModelView
 from flask_bcrypt import Bcrypt
-import os
 
-# IMPORT ROUTES
 from routes.user_routes import user
 from routes.subscription_routes import subscription
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.secret_key = os.environ.get("SECRET_KEY", "change-this-in-production")
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
 
-# ======================================================
-# ADMIN PANEL
-# ======================================================
+
+# ── Admin Panel ──────────────────────────────────────
 
 class SecureModelView(ModelView):
     def is_accessible(self):
-        from flask import session
         return session.get("role") == "admin"
-
     def inaccessible_callback(self, name, **kwargs):
         return redirect("/admin-login")
 
@@ -48,34 +43,33 @@ class AdminAdminView(SecureModelView):
 
 
 admin_panel = FlaskAdmin(app, name="Mangal Vows Admin", url="/admin")
+admin_panel.add_view(SecureModelView(User,  db.session, endpoint="user_admin"))
+admin_panel.add_view(AgentAdminView(Agent,  db.session, endpoint="agent_admin"))
+admin_panel.add_view(AdminAdminView(Admin,  db.session, endpoint="admin_admin"))
 
-admin_panel.add_view(SecureModelView(User, db.session, endpoint="user_admin"))
-admin_panel.add_view(AgentAdminView(Agent, db.session, endpoint="agent_admin"))
-admin_panel.add_view(AdminAdminView(Admin, db.session, endpoint="admin_admin"))
 
-# ======================================================
-# REGISTER BLUEPRINTS
-# ======================================================
+# ── Blueprints ───────────────────────────────────────
 
 app.register_blueprint(user)
 app.register_blueprint(subscription)
 
-# ======================================================
-# DB INIT
-# ======================================================
+
+# ── DB Init ──────────────────────────────────────────
 
 with app.app_context():
     db.create_all()
 
-    # ✅ Create default admin safely
-    if not Admin.query.filter_by(username="admin").first():
-        hashed_pw = bcrypt.generate_password_hash("admin123").decode("utf-8")
-        db.session.add(Admin(username="admin", password_hash=hashed_pw))
+    # ✅ Uses ADMIN_USERNAME and ADMIN_PASSWORD from Render env
+    admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+    admin_password = os.environ.get("ADMIN_PASSWORD", "change-me-in-prod")
+
+    if not Admin.query.filter_by(username=admin_username).first():
+        hashed_pw = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+        db.session.add(Admin(username=admin_username, password_hash=hashed_pw))
         db.session.commit()
 
-# ======================================================
-# RUN
-# ======================================================
+
+# ── Run ──────────────────────────────────────────────
 
 if __name__ == "__main__":
-    app.run(debug=os.environ.get("DEBUG", "False") == "True")
+    app.run(debug=Config.DEBUG)

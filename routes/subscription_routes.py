@@ -1,95 +1,73 @@
-from flask import Blueprint, request, jsonify, session, redirect, url_for
+import razorpay
+import hmac
+import hashlib
+import os
+from flask import Blueprint, render_template, request, redirect, url_for, session
 from models import User
 from database import db
 from datetime import datetime, timedelta
-import razorpay
-import os
 
 subscription = Blueprint("subscription", __name__)
 
-# ----------------------------------------
-# RAZORPAY CLIENT
-# ----------------------------------------
+RAZORPAY_KEY_ID     = os.environ.get("RAZORPAY_KEY_ID", "your_key_id")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "your_key_secret")
+AMOUNT_PAISE        = 50000  # ₹500 in paise
 
-client = razorpay.Client(auth=(
-    os.environ.get("RAZORPAY_KEY_ID"),
-    os.environ.get("RAZORPAY_KEY_SECRET")
-))
-
-# ----------------------------------------
-# CREATE ORDER
-# ----------------------------------------
-
-@subscription.route("/create-order", methods=["POST"])
-def create_order():
-
-    if session.get("role") != "user":
-        return jsonify({"error": "Unauthorized"}), 401
-
-    try:
-        order = client.order.create({
-            "amount": 50000,  # ₹500 in paise
-            "currency": "INR",
-            "payment_capture": 1
-        })
-
-        return jsonify(order)
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 
 # ----------------------------------------
-# VERIFY PAYMENT
+# SUBSCRIBE PAGE — creates Razorpay order
+# ----------------------------------------
+
+@subscription.route("/subscribe")
+def subscribe():
+    if not session.get("user"):
+        return redirect(url_for("user.home"))
+
+    order = client.order.create({
+        "amount":   AMOUNT_PAISE,
+        "currency": "INR",
+        "payment_capture": 1
+    })
+
+    return render_template(
+        "subscribe.html",
+        key_id=RAZORPAY_KEY_ID,
+        order_id=order["id"],
+        amount=AMOUNT_PAISE
+    )
+
+
+# ----------------------------------------
+# PAYMENT VERIFICATION
 # ----------------------------------------
 
 @subscription.route("/verify-payment", methods=["POST"])
 def verify_payment():
-
-    if session.get("role") != "user":
-        return jsonify({"error": "Unauthorized"}), 401
-
-    data = request.json
-
-    try:
-        # Verify Razorpay signature
-        client.utility.verify_payment_signature({
-            "razorpay_order_id": data.get("order_id"),
-            "razorpay_payment_id": data.get("payment_id"),
-            "razorpay_signature": data.get("signature")
-        })
-
-        # Activate subscription
-        user = User.query.filter_by(phone=session.get("user")).first()
-
-        if user:
-            user.subscription_active = True
-            user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
-            db.session.commit()
-
-        return jsonify({"status": "success"})
-
-    except Exception as e:
-        return jsonify({"status": "failed", "error": str(e)}), 400
-
-
-# ----------------------------------------
-# OPTIONAL: MANUAL ACTIVATE (TEST MODE)
-# ----------------------------------------
-
-@subscription.route("/activate", methods=["POST"])
-def activate():
-
-    if session.get("role") != "user":
+    if not session.get("user"):
         return redirect(url_for("user.home"))
 
-    user = User.query.filter_by(phone=session.get("user")).first()
+    razorpay_order_id   = request.form.get("razorpay_order_id")
+    razorpay_payment_id = request.form.get("razorpay_payment_id")
+    razorpay_signature  = request.form.get("razorpay_signature")
 
-    if not user:
-        return redirect(url_for("user.home"))
+    # Verify signature
+    body = razorpay_order_id + "|" + razorpay_payment_id
+    expected_signature = hmac.new(
+        RAZORPAY_KEY_SECRET.encode(),
+        body.encode(),
+        hashlib.sha256
+    ).hexdigest()
 
-    user.subscription_active = True
-    user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
-    db.session.commit()
+    if expected_signature != razorpay_signature:
+        return render_template("subscribe.html", error="Payment verification failed. Please try again.")
+
+    # Activate subscription
+    user = User.query.filter_by(phone=session["user"]).first()
+    if user:
+        user.subscription_active = True
+        user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
+        db.session.commit()
 
     return redirect(url_for("user.dashboard"))

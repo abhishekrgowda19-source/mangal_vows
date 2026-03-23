@@ -1,60 +1,107 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Activate Subscription - Mangal Vows</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activate Subscription - Mangal Vows</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .subscription-box {
+            background: #f0f7ff;
+            border: 2px solid #2563eb;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .price {
+            font-size: 42px;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 10px 0;
+        }
+        .subscription-box p {
+            margin: 6px 0;
+            color: #374151;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
 </head>
-
 <body>
 
 <div class="background-animation"></div>
 
 <div class="portal-card">
 
-<div class="header-bar">
+    <div class="header-bar">
+        <div class="brand">
+            <div class="shield">C</div>
+            <span>MANGAL VOWS</span>
+        </div>
+        <div class="top-links">
+            <a href="{{ url_for('user.home') }}">Login</a>
+            <a href="#">Help</a>
+        </div>
+    </div>
 
-<div class="brand">
-<div class="shield">C</div>
-<span>MANGAL VOWS</span>
+    <h2>Subscription Required</h2>
+    <p class="subtitle">Activate your plan to unlock full portal access</p>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <div class="subscription-box">
+        <h3>Premium Access Plan</h3>
+        <p class="price">₹500</p>
+        <p>✔ Valid for 30 Days</p>
+        <p>✔ Unlimited profile browsing</p>
+        <p>✔ Advanced search filters</p>
+        <p>✔ AI-powered match suggestions</p>
+    </div>
+
+    <!-- Hidden form to submit payment details -->
+    <form method="POST" action="{{ url_for('subscription.verify_payment') }}" id="payment-form">
+        <input type="hidden" name="razorpay_order_id"   id="razorpay_order_id">
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_signature"  id="razorpay_signature">
+    </form>
+
+    <button class="secure-btn" onclick="openRazorpay()" style="width:100%">
+        🔐 Pay ₹500 &amp; Activate Access
+    </button>
+
+    <div class="footer-text">
+        Secure payment gateway • Data encrypted • Safe transactions
+    </div>
+
 </div>
 
-<div class="top-links">
-<a href="/">Login</a>
-<a href="#">Help</a>
-</div>
-
-</div>
-
-<h2>Subscription Required</h2>
-<p class="subtitle">Activate your plan to unlock full portal access</p>
-
-<div class="subscription-box">
-
-<h3>Premium Access Plan</h3>
-
-<p class="price">₹500</p>
-
-<p>✔ Valid for 30 Days</p>
-<p>✔ Unlimited profile browsing</p>
-<p>✔ Advanced search filters</p>
-<p>✔ AI-powered match suggestions</p>
-
-</div>
-
-<form method="POST" action="/activate">
-
-<button type="submit" class="secure-btn">
-🔐 Pay ₹500 & Activate Access
-</button>
-
-</form>
-
-<div class="footer-text">
-Secure payment gateway • Data encrypted • Safe transactions
-</div>
-
-</div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+function openRazorpay() {
+    var options = {
+        key:         "{{ key_id }}",
+        amount:      "{{ amount }}",
+        currency:    "INR",
+        name:        "Mangal Vows",
+        description: "30-Day Premium Subscription",
+        order_id:    "{{ order_id }}",
+        handler: function(response) {
+            document.getElementById("razorpay_order_id").value   = response.razorpay_order_id;
+            document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+            document.getElementById("razorpay_signature").value  = response.razorpay_signature;
+            document.getElementById("payment-form").submit();
+        },
+        theme: { color: "#2563eb" }
+    };
+    var rzp = new Razorpay(options);
+    rzp.open();
+}
+</script>
 
 </body>
 </html>
