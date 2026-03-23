@@ -26,13 +26,17 @@ def create_order():
     if session.get("role") != "user":
         return jsonify({"error": "Unauthorized"}), 401
 
-    order = client.order.create({
-        "amount": 50000,  # ₹500 in paise
-        "currency": "INR",
-        "payment_capture": 1
-    })
+    try:
+        order = client.order.create({
+            "amount": 50000,  # ₹500 in paise
+            "currency": "INR",
+            "payment_capture": 1
+        })
 
-    return jsonify(order)
+        return jsonify(order)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ----------------------------------------
@@ -50,9 +54,9 @@ def verify_payment():
     try:
         # Verify Razorpay signature
         client.utility.verify_payment_signature({
-            "razorpay_order_id": data["order_id"],
-            "razorpay_payment_id": data["payment_id"],
-            "razorpay_signature": data["signature"]
+            "razorpay_order_id": data.get("order_id"),
+            "razorpay_payment_id": data.get("payment_id"),
+            "razorpay_signature": data.get("signature")
         })
 
         # Activate subscription
@@ -66,7 +70,7 @@ def verify_payment():
         return jsonify({"status": "success"})
 
     except Exception as e:
-        return jsonify({"status": "failed", "error": str(e)})
+        return jsonify({"status": "failed", "error": str(e)}), 400
 
 
 # ----------------------------------------
@@ -77,15 +81,15 @@ def verify_payment():
 def activate():
 
     if session.get("role") != "user":
-        return redirect(url_for("home"))
+        return redirect(url_for("user.home"))
 
     user = User.query.filter_by(phone=session.get("user")).first()
 
     if not user:
-        return redirect(url_for("home"))
+        return redirect(url_for("user.home"))
 
     user.subscription_active = True
     user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
     db.session.commit()
 
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("user.dashboard"))

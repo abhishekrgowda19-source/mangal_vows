@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from models import User
-from database import db
 from datetime import datetime
 
 user = Blueprint("user", __name__)
@@ -16,6 +15,7 @@ def normalize_phone(phone):
 def get_name3(name):
     return name[:3].upper() if len(name) >= 3 else name.upper()
 
+
 # ----------------------------------------
 # HOME
 # ----------------------------------------
@@ -23,6 +23,7 @@ def get_name3(name):
 @user.route("/")
 def home():
     return render_template("login.html")
+
 
 # ----------------------------------------
 # LOGIN
@@ -44,6 +45,7 @@ def login():
 
     return redirect(url_for("user.dashboard"))
 
+
 # ----------------------------------------
 # DASHBOARD
 # ----------------------------------------
@@ -60,12 +62,14 @@ def dashboard():
         return redirect(url_for("user.home"))
 
     # 🔐 subscription check with expiry
-    if not user_data.subscription_active or (
-        user_data.subscription_expiry and user_data.subscription_expiry < datetime.utcnow()
+    if (
+        not user_data.subscription_active or
+        (user_data.subscription_expiry and user_data.subscription_expiry < datetime.utcnow())
     ):
         return render_template("subscribe.html")
 
     return render_template("dashboard.html", user=user_data)
+
 
 # ----------------------------------------
 # SEARCH
@@ -84,7 +88,10 @@ def search():
     query = User.query
 
     if age:
-        query = query.filter_by(age=int(age))
+        try:
+            query = query.filter_by(age=int(age))
+        except:
+            pass
 
     if location:
         query = query.filter(User.location.ilike(f"%{location}%"))
@@ -95,6 +102,7 @@ def search():
     users = query.all()
 
     return render_template("dashboard.html", users=users)
+
 
 # ----------------------------------------
 # LOGOUT

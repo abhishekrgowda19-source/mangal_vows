@@ -8,8 +8,8 @@ from flask_bcrypt import Bcrypt
 import os
 
 # IMPORT ROUTES
-from user_routes import user
-from subscription_routes import subscription
+from routes.user_routes import user
+from routes.subscription_routes import subscription
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -67,6 +67,7 @@ app.register_blueprint(subscription)
 with app.app_context():
     db.create_all()
 
+    # ✅ Create default admin safely
     if not Admin.query.filter_by(username="admin").first():
         hashed_pw = bcrypt.generate_password_hash("admin123").decode("utf-8")
         db.session.add(Admin(username="admin", password_hash=hashed_pw))
@@ -77,4 +78,4 @@ with app.app_context():
 # ======================================================
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=os.environ.get("DEBUG", "False") == "True")
