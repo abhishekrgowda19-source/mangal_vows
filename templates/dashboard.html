@@ -97,6 +97,20 @@
     color: #1e40af;
     font-weight: 600;
 }
+.result-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+.report-link {
+    font-size: 12px;
+    color: #ef4444;
+    text-decoration: none;
+}
+.report-link:hover {
+    text-decoration: underline;
+}
 @media (max-width: 600px) {
     .search-grid { grid-template-columns: 1fr; }
 }
@@ -224,6 +238,17 @@
             <div class="contact">
                 📞 <b>Phone:</b> {{ u.phone }} &nbsp;|&nbsp;
                 📧 <b>Email:</b> {{ u.email or "Not provided" }}
+            </div>
+
+            <!-- ✅ Report button -->
+            <div class="result-footer">
+                <span style="font-size:12px; color:#9ca3af;">
+                    Profile ID: {{ u.id[:8] }}...
+                </span>
+                <a href="{{ url_for('user.report_profile', reported_id=u.id) }}"
+                   class="report-link">
+                    🚨 Report this profile
+                </a>
             </div>
 
         </div>

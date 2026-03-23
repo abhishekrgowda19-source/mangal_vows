@@ -1,93 +1,221 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Dashboard</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial;
-            background: #f4f6f9;
-        }
-
-        .header {
-            background: #111827;
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-right .btn {
-            margin-left: 10px;
-        }
-
-        .container {
-            padding: 30px;
-        }
-
-        .cards {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap; /* ✅ responsive fix */
-        }
-
-        .card {
-            flex: 1 1 200px; /* ✅ responsive */
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .btn {
-            padding: 10px 15px;
-            background: #2563eb;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            color: #9ca3af;
-            margin-top: 5px;
-        }
-    </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Admin - Mangal Vows</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f4f6f9; }
+.sidebar {
+    width: 220px;
+    background: #111827;
+    min-height: 100vh;
+    position: fixed;
+    top: 0; left: 0;
+    padding: 20px 0;
+}
+.sidebar .logo {
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid #374151;
+    margin-bottom: 15px;
+}
+.sidebar a {
+    display: block;
+    color: #9ca3af;
+    text-decoration: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.sidebar a:hover, .sidebar a.active {
+    background: #1f2937;
+    color: white;
+}
+.main { margin-left: 220px; padding: 30px; }
+.page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 25px;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.stat-card .icon { font-size: 28px; margin-bottom: 10px; }
+.stat-card .value {
+    font-size: 30px;
+    font-weight: 700;
+    color: #111827;
+}
+.stat-card .label {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.card h3 {
+    font-size: 15px;
+    color: #111827;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f3f4f6;
+}
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; text-align: left; font-size: 13px; border-bottom: 1px solid #f3f4f6; }
+th { color: #6b7280; font-weight: 600; }
+.badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.badge-green  { background: #dcfce7; color: #16a34a; }
+.badge-red    { background: #fee2e2; color: #ef4444; }
+.badge-yellow { background: #fef3c7; color: #d97706; }
+.alert-box {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #92400e;
+    margin-bottom: 20px;
+}
+@media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+}
+</style>
 </head>
 <body>
 
-<div class="header">
-    <div>
-        <h2>Admin Dashboard</h2>
-        <div class="subtitle">
-            Welcome, {{ session.admin }}
-        </div>
-    </div>
-
-    <div class="header-right">
-        <a href="/admin" class="btn">Admin Panel</a>
-        <a href="/logout" class="btn">Logout</a>
-    </div>
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">🛡️ Mangal Vows</div>
+    <a href="{{ url_for('admin_bp.admin_dashboard') }}" class="active">📊 Dashboard</a>
+    <a href="{{ url_for('admin_bp.admin_users') }}">👥 Users</a>
+    <a href="{{ url_for('admin_bp.admin_agents') }}">🏢 Agents</a>
+    <a href="{{ url_for('admin_bp.admin_payments') }}">💰 Payments</a>
+    <a href="{{ url_for('admin_bp.admin_disputes') }}">⚠️ Disputes</a>
+    <a href="/admin">⚙️ Flask Admin</a>
+    <a href="{{ url_for('admin_bp.admin_logout') }}" style="margin-top:auto; color:#ef4444;">🚪 Logout</a>
 </div>
 
-<div class="container">
+<!-- Main Content -->
+<div class="main">
 
-    <div class="cards">
+    <div class="page-title">Super Admin Dashboard</div>
 
+    {% if open_disputes > 0 %}
+    <div class="alert-box">
+        ⚠️ <b>{{ open_disputes }} open dispute(s)</b> need your attention.
+        <a href="{{ url_for('admin_bp.admin_disputes') }}" style="color:#2563eb; margin-left:10px;">
+            View Disputes →
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="icon">👥</div>
+            <div class="value">{{ total_users }}</div>
+            <div class="label">Total Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">✅</div>
+            <div class="value">{{ active_subs }}</div>
+            <div class="label">Active Subscriptions</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">🏢</div>
+            <div class="value">{{ total_agents }}</div>
+            <div class="label">Total Agents</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">💰</div>
+            <div class="value">₹{{ total_revenue }}</div>
+            <div class="label">Total Revenue</div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+
+        <!-- Recent Users -->
         <div class="card">
-            <h3>Total Users</h3>
-            <h1>{{ users or 0 }}</h1>
+            <h3>👥 Recent Users</h3>
+            <table>
+                <tr><th>Name</th><th>Caste</th><th>Status</th></tr>
+                {% for u in recent_users %}
+                <tr>
+                    <td>{{ u.name }}</td>
+                    <td>{{ u.caste or "N/A" }}</td>
+                    <td>
+                        {% if u.subscription_active %}
+                            <span class="badge badge-green">Active</span>
+                        {% else %}
+                            <span class="badge badge-red">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            <a href="{{ url_for('admin_bp.admin_users') }}"
+               style="display:block;text-align:center;margin-top:15px;font-size:13px;color:#2563eb;">
+                View All Users →
+            </a>
         </div>
 
+        <!-- Recent Payments -->
         <div class="card">
-            <h3>Total Agents</h3>
-            <h1>{{ agents or 0 }}</h1>
+            <h3>💰 Recent Payments</h3>
+            <table>
+                <tr><th>User</th><th>Amount</th><th>Type</th></tr>
+                {% for p in recent_payments %}
+                <tr>
+                    <td>{{ p.user.name if p.user else "N/A" }}</td>
+                    <td>₹{{ p.amount // 100 }}</td>
+                    <td>
+                        {% if p.payment_type == "activation" %}
+                            <span class="badge badge-green">Activation</span>
+                        {% else %}
+                            <span class="badge badge-yellow">Renewal</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            <a href="{{ url_for('admin_bp.admin_payments') }}"
+               style="display:block;text-align:center;margin-top:15px;font-size:13px;color:#2563eb;">
+                View All Payments →
+            </a>
         </div>
 
     </div>
-
 </div>
-
 </body>
 </html>

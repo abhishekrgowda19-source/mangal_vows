@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payments - Mangal Vows Admin</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:Arial; background:#f4f6f9; }
+.sidebar { width:220px; background:#111827; min-height:100vh; position:fixed; top:0; left:0; padding:20px 0; }
+.sidebar .logo { color:white; font-size:18px; font-weight:700; padding:0 20px 20px; border-bottom:1px solid #374151; margin-bottom:15px; }
+.sidebar a { display:block; color:#9ca3af; text-decoration:none; padding:12px 20px; font-size:14px; }
+.sidebar a:hover, .sidebar a.active { background:#1f2937; color:white; }
+.main { margin-left:220px; padding:30px; }
+.page-title { font-size:22px; font-weight:700; color:#111827; margin-bottom:20px; }
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-bottom:20px; }
+.stat-card { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); text-align:center; }
+.stat-card .value { font-size:28px; font-weight:700; color:#111827; }
+.stat-card .label { font-size:13px; color:#6b7280; margin-top:4px; }
+.card { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:10px; text-align:left; font-size:13px; border-bottom:1px solid #f3f4f6; }
+th { color:#6b7280; font-weight:600; background:#f9fafb; }
+.badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-green  { background:#dcfce7; color:#16a34a; }
+.badge-yellow { background:#fef3c7; color:#d97706; }
+</style>
+</head>
+<body>
+<div class="sidebar">
+    <div class="logo">🛡️ Mangal Vows</div>
+    <a href="{{ url_for('admin_bp.admin_dashboard') }}">📊 Dashboard</a>
+    <a href="{{ url_for('admin_bp.admin_users') }}">👥 Users</a>
+    <a href="{{ url_for('admin_bp.admin_agents') }}">🏢 Agents</a>
+    <a href="{{ url_for('admin_bp.admin_payments') }}" class="active">💰 Payments</a>
+    <a href="{{ url_for('admin_bp.admin_disputes') }}">⚠️ Disputes</a>
+    <a href="/admin">⚙️ Flask Admin</a>
+    <a href="{{ url_for('admin_bp.admin_logout') }}" style="color:#ef4444;">🚪 Logout</a>
+</div>
+<div class="main">
+    <div class="page-title">💰 Payment Management</div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="value">₹{{ total_revenue }}</div>
+            <div class="label">Total Revenue</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">₹{{ activation_revenue }}</div>
+            <div class="label">From Activations (₹500)</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">₹{{ renewal_revenue }}</div>
+            <div class="label">From Renewals (₹100)</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <table>
+            <tr>
+                <th>#</th>
+                <th>User</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Payment ID</th>
+                <th>Date</th>
+            </tr>
+            {% for p in payments %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ p.user.name if p.user else "N/A" }}<br>
+                    <small style="color:#6b7280;">{{ p.user.phone if p.user else "" }}</small>
+                </td>
+                <td><b>₹{{ p.amount // 100 }}</b></td>
+                <td>
+                    {% if p.payment_type == "activation" %}
+                        <span class="badge badge-green">Activation</span>
+                    {% else %}
+                        <span class="badge badge-yellow">Renewal</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:11px; color:#6b7280;">{{ p.razorpay_payment_id }}</td>
+                <td>{{ p.created_at.strftime('%d %b %Y %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+</body>
+</html>

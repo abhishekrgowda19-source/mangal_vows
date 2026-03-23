@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agents - Mangal Vows Admin</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:Arial; background:#f4f6f9; }
+.sidebar { width:220px; background:#111827; min-height:100vh; position:fixed; top:0; left:0; padding:20px 0; }
+.sidebar .logo { color:white; font-size:18px; font-weight:700; padding:0 20px 20px; border-bottom:1px solid #374151; margin-bottom:15px; }
+.sidebar a { display:block; color:#9ca3af; text-decoration:none; padding:12px 20px; font-size:14px; }
+.sidebar a:hover, .sidebar a.active { background:#1f2937; color:white; }
+.main { margin-left:220px; padding:30px; }
+.page-title { font-size:22px; font-weight:700; color:#111827; margin-bottom:20px; }
+.card { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:10px; text-align:left; font-size:13px; border-bottom:1px solid #f3f4f6; }
+th { color:#6b7280; font-weight:600; background:#f9fafb; }
+.badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-green  { background:#dcfce7; color:#16a34a; }
+.badge-red    { background:#fee2e2; color:#ef4444; }
+.badge-yellow { background:#fef3c7; color:#d97706; }
+.btn { padding:6px 10px; border-radius:6px; font-size:11px; text-decoration:none; font-weight:600; margin:2px; display:inline-block; }
+.btn-green  { background:#16a34a; color:white; }
+.btn-red    { background:#ef4444; color:white; }
+.btn-yellow { background:#d97706; color:white; }
+</style>
+</head>
+<body>
+<div class="sidebar">
+    <div class="logo">🛡️ Mangal Vows</div>
+    <a href="{{ url_for('admin_bp.admin_dashboard') }}">📊 Dashboard</a>
+    <a href="{{ url_for('admin_bp.admin_users') }}">👥 Users</a>
+    <a href="{{ url_for('admin_bp.admin_agents') }}" class="active">🏢 Agents</a>
+    <a href="{{ url_for('admin_bp.admin_payments') }}">💰 Payments</a>
+    <a href="{{ url_for('admin_bp.admin_disputes') }}">⚠️ Disputes</a>
+    <a href="/admin">⚙️ Flask Admin</a>
+    <a href="{{ url_for('admin_bp.admin_logout') }}" style="color:#ef4444;">🚪 Logout</a>
+</div>
+<div class="main">
+    <div class="page-title">🏢 Agent Management</div>
+    <div class="card">
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Clients</th>
+                <th>KYC Status</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+            {% for a in agents %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><b>{{ a.name }}</b></td>
+                <td>{{ a.email }}</td>
+                <td>{{ a.phone or "N/A" }}</td>
+                <td>{{ a.clients|length }}</td>
+                <td>
+                    {% if a.kyc_status == "approved" %}
+                        <span class="badge badge-green">✅ Approved</span>
+                    {% elif a.kyc_status == "rejected" %}
+                        <span class="badge badge-red">❌ Rejected</span>
+                    {% else %}
+                        <span class="badge badge-yellow">⏳ Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if a.is_active %}
+                        <span class="badge badge-green">Active</span>
+                    {% else %}
+                        <span class="badge badge-red">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('admin_bp.toggle_agent', agent_id=a.id) }}"
+                       class="btn {{ 'btn-red' if a.is_active else 'btn-green' }}">
+                        {{ 'Deactivate' if a.is_active else 'Activate' }}
+                    </a>
+                    {% if a.kyc_status != "approved" %}
+                    <a href="{{ url_for('admin_bp.agent_kyc', agent_id=a.id, action='approve') }}"
+                       class="btn btn-green">✅ Approve</a>
+                    {% endif %}
+                    {% if a.kyc_status != "rejected" %}
+                    <a href="{{ url_for('admin_bp.agent_kyc', agent_id=a.id, action='reject') }}"
+                       class="btn btn-red">❌ Reject</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disputes - Mangal Vows Admin</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:Arial; background:#f4f6f9; }
+.sidebar { width:220px; background:#111827; min-height:100vh; position:fixed; top:0; left:0; padding:20px 0; }
+.sidebar .logo { color:white; font-size:18px; font-weight:700; padding:0 20px 20px; border-bottom:1px solid #374151; margin-bottom:15px; }
+.sidebar a { display:block; color:#9ca3af; text-decoration:none; padding:12px 20px; font-size:14px; }
+.sidebar a:hover, .sidebar a.active { background:#1f2937; color:white; }
+.main { margin-left:220px; padding:30px; }
+.page-title { font-size:22px; font-weight:700; color:#111827; margin-bottom:20px; }
+.tabs { display:flex; gap:10px; margin-bottom:20px; }
+.tab { padding:8px 20px; border-radius:20px; text-decoration:none; font-size:13px; font-weight:600; background:#e5e7eb; color:#374151; }
+.tab.active { background:#2563eb; color:white; }
+.dispute-card { background:white; border-radius:12px; padding:20px; margin-bottom:15px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+.dispute-card h4 { font-size:15px; color:#111827; margin-bottom:8px; }
+.dispute-card p  { font-size:13px; color:#6b7280; margin:4px 0; }
+.resolve-form { margin-top:15px; padding-top:15px; border-top:1px solid #f3f4f6; }
+.resolve-form textarea { width:100%; padding:10px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; margin-bottom:10px; }
+.resolve-form select { padding:8px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; margin-right:10px; }
+.btn { padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; }
+.btn-green { background:#16a34a; color:white; }
+.badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-red    { background:#fee2e2; color:#ef4444; }
+.badge-green  { background:#dcfce7; color:#16a34a; }
+.badge-yellow { background:#fef3c7; color:#d97706; }
+</style>
+</head>
+<body>
+<div class="sidebar">
+    <div class="logo">🛡️ Mangal Vows</div>
+    <a href="{{ url_for('admin_bp.admin_dashboard') }}">📊 Dashboard</a>
+    <a href="{{ url_for('admin_bp.admin_users') }}">👥 Users</a>
+    <a href="{{ url_for('admin_bp.admin_agents') }}">🏢 Agents</a>
+    <a href="{{ url_for('admin_bp.admin_payments') }}">💰 Payments</a>
+    <a href="{{ url_for('admin_bp.admin_disputes') }}" class="active">⚠️ Disputes</a>
+    <a href="/admin">⚙️ Flask Admin</a>
+    <a href="{{ url_for('admin_bp.admin_logout') }}" style="color:#ef4444;">🚪 Logout</a>
+</div>
+<div class="main">
+    <div class="page-title">⚠️ Dispute Management</div>
+
+    <div class="tabs">
+        <a href="?status=open"     class="tab {{ 'active' if status == 'open' }}">🔴 Open</a>
+        <a href="?status=resolved" class="tab {{ 'active' if status == 'resolved' }}">✅ Resolved</a>
+        <a href="?status=closed"   class="tab {{ 'active' if status == 'closed' }}">🔒 Closed</a>
+    </div>
+
+    {% if disputes %}
+        {% for d in disputes %}
+        <div class="dispute-card">
+            <h4>{{ d.subject }}</h4>
+            <p>👤 <b>Reported by:</b> {{ d.reporter.name if d.reporter else "N/A" }}
+               ({{ d.reporter.phone if d.reporter else "" }})</p>
+            <p>🚨 <b>Against:</b> {{ d.reported.name if d.reported else "N/A" }}</p>
+            <p>📝 <b>Description:</b> {{ d.description }}</p>
+            <p>📅 <b>Date:</b> {{ d.created_at.strftime('%d %b %Y %H:%M') }}</p>
+
+            {% if d.admin_note %}
+            <p>💬 <b>Admin Note:</b> {{ d.admin_note }}</p>
+            {% endif %}
+
+            {% if d.status == "open" %}
+            <div class="resolve-form">
+                <form method="POST"
+                      action="{{ url_for('admin_bp.resolve_dispute', dispute_id=d.id) }}">
+                    <textarea name="admin_note" rows="3"
+                              placeholder="Add resolution note..."></textarea>
+                    <div>
+                        <select name="status">
+                            <option value="resolved">✅ Resolve</option>
+                            <option value="closed">🔒 Close</option>
+                        </select>
+                        <button type="submit" class="btn btn-green">
+                            Submit Resolution
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align:center;padding:40px;color:#9ca3af;">
+            <div style="font-size:48px;">✅</div>
+            <p>No {{ status }} disputes!</p>
+        </div>
+    {% endif %}
+
+</div>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Users - Mangal Vows Admin</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:Arial; background:#f4f6f9; }
+.sidebar { width:220px; background:#111827; min-height:100vh; position:fixed; top:0; left:0; padding:20px 0; }
+.sidebar .logo { color:white; font-size:18px; font-weight:700; padding:0 20px 20px; border-bottom:1px solid #374151; margin-bottom:15px; }
+.sidebar a { display:block; color:#9ca3af; text-decoration:none; padding:12px 20px; font-size:14px; }
+.sidebar a:hover, .sidebar a.active { background:#1f2937; color:white; }
+.main { margin-left:220px; padding:30px; }
+.page-title { font-size:22px; font-weight:700; color:#111827; margin-bottom:20px; }
+.card { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:10px; text-align:left; font-size:13px; border-bottom:1px solid #f3f4f6; }
+th { color:#6b7280; font-weight:600; background:#f9fafb; }
+.badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-green { background:#dcfce7; color:#16a34a; }
+.badge-red   { background:#fee2e2; color:#ef4444; }
+.btn { padding:6px 12px; border-radius:6px; font-size:12px; text-decoration:none; font-weight:600; }
+.btn-green { background:#16a34a; color:white; }
+.btn-red   { background:#ef4444; color:white; }
+.search-box { display:flex; gap:10px; margin-bottom:20px; }
+.search-box input { flex:1; padding:10px; border:1px solid #e5e7eb; border-radius:8px; font-size:14px; }
+.search-box button { padding:10px 20px; background:#2563eb; color:white; border:none; border-radius:8px; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="sidebar">
+    <div class="logo">🛡️ Mangal Vows</div>
+    <a href="{{ url_for('admin_bp.admin_dashboard') }}">📊 Dashboard</a>
+    <a href="{{ url_for('admin_bp.admin_users') }}" class="active">👥 Users</a>
+    <a href="{{ url_for('admin_bp.admin_agents') }}">🏢 Agents</a>
+    <a href="{{ url_for('admin_bp.admin_payments') }}">💰 Payments</a>
+    <a href="{{ url_for('admin_bp.admin_disputes') }}">⚠️ Disputes</a>
+    <a href="/admin">⚙️ Flask Admin</a>
+    <a href="{{ url_for('admin_bp.admin_logout') }}" style="color:#ef4444;">🚪 Logout</a>
+</div>
+<div class="main">
+    <div class="page-title">👥 User Management</div>
+
+    <form method="GET" action="{{ url_for('admin_bp.admin_users') }}">
+        <div class="search-box">
+            <input type="text" name="search" value="{{ search }}" placeholder="Search by name, phone or caste...">
+            <button type="submit">Search</button>
+        </div>
+    </form>
+
+    <div class="card">
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Caste</th>
+                <th>Location</th>
+                <th>Agent</th>
+                <th>Subscription</th>
+                <th>Action</th>
+            </tr>
+            {% for u in users %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><b>{{ u.name }}</b></td>
+                <td>{{ u.phone }}</td>
+                <td>{{ u.caste or "N/A" }}</td>
+                <td>{{ u.location or "N/A" }}</td>
+                <td>{{ u.agent.name if u.agent else "Self" }}</td>
+                <td>
+                    {% if u.subscription_active %}
+                        <span class="badge badge-green">✅ Active</span>
+                        {% if u.subscription_expiry %}
+                        <br><small style="color:#6b7280;">{{ u.subscription_expiry.strftime('%d %b %Y') }}</small>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge badge-red">❌ Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('admin_bp.toggle_subscription', user_id=u.id) }}"
+                       class="btn {{ 'btn-red' if u.subscription_active else 'btn-green' }}">
+                        {{ 'Deactivate' if u.subscription_active else 'Activate' }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+</body>
+</html>

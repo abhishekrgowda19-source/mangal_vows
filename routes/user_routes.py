@@ -212,3 +212,30 @@ def search():
 def logout():
     session.clear()
     return redirect(url_for("user.home"))
+# ── Report a Profile ──────────────────────────────────
+
+@user.route("/report/<reported_id>", methods=["GET", "POST"])
+def report_profile(reported_id):
+    if session.get("role") != "user":
+        return redirect(url_for("user.home"))
+
+    user_data = User.query.filter_by(phone=session.get("user")).first()
+    reported  = User.query.get(reported_id)
+
+    if not user_data or not reported:
+        return redirect(url_for("user.dashboard"))
+
+    if request.method == "POST":
+        from models import Dispute
+        dispute = Dispute(
+            raised_by   = user_data.id,
+            against     = reported_id,
+            subject     = request.form.get("subject", "").strip(),
+            description = request.form.get("description", "").strip(),
+            status      = "open"
+        )
+        db.session.add(dispute)
+        db.session.commit()
+        return redirect(url_for("user.dashboard"))
+
+    return render_template("report.html", reported=reported)
