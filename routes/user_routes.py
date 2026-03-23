@@ -14,10 +14,20 @@ def get_name3(name):
     return name[:3].upper() if len(name) >= 3 else name.upper()
 
 
+def is_subscription_valid(user_data):
+    if not user_data.subscription_active:
+        return False
+    if user_data.subscription_expiry and user_data.subscription_expiry < datetime.utcnow():
+        return False
+    return True
+
+
 @user.route("/")
 def home():
     return render_template("login.html")
 
+
+# ── Commercial Login ──────────────────────────────────
 
 @user.route("/login", methods=["POST"])
 def login():
@@ -30,17 +40,36 @@ def login():
         return render_template("login.html", error="Invalid credentials")
 
     session["user"] = user_data.phone
-    session["role"]  = "user"
+    session["role"] = "user"
 
-    # ✅ Check subscription + expiry at login
-    if (
-        not user_data.subscription_active or
-        (user_data.subscription_expiry and user_data.subscription_expiry < datetime.utcnow())
-    ):
+    if not is_subscription_valid(user_data):
         return redirect(url_for("subscription.subscribe"))
 
     return redirect(url_for("user.dashboard"))
 
+
+# ── Personal Login ────────────────────────────────────
+
+@user.route("/personal-login", methods=["POST"])
+def personal_login():
+    name  = request.form.get("name", "").strip()
+    phone = normalize_phone(request.form.get("phone"))
+
+    user_data = User.query.filter_by(phone=phone).first()
+
+    if not user_data or user_data.name.strip().lower() != name.lower():
+        return render_template("login.html", error="Invalid credentials")
+
+    session["user"] = user_data.phone
+    session["role"] = "user"
+
+    if not is_subscription_valid(user_data):
+        return redirect(url_for("subscription.subscribe"))
+
+    return redirect(url_for("user.dashboard"))
+
+
+# ── Dashboard ─────────────────────────────────────────
 
 @user.route("/dashboard")
 def dashboard():
@@ -51,26 +80,21 @@ def dashboard():
     if not user_data:
         return redirect(url_for("user.home"))
 
-    # ✅ Expiry check
-    if (
-        not user_data.subscription_active or
-        (user_data.subscription_expiry and user_data.subscription_expiry < datetime.utcnow())
-    ):
+    if not is_subscription_valid(user_data):
         return redirect(url_for("subscription.subscribe"))
 
     return render_template("dashboard.html", user=user_data)
 
+
+# ── Search ────────────────────────────────────────────
 
 @user.route("/search")
 def search():
     if session.get("role") != "user":
         return redirect(url_for("user.home"))
 
-    # ✅ Subscription check on search too
     user_data = User.query.filter_by(phone=session.get("user")).first()
-    if not user_data or not user_data.subscription_active or (
-        user_data.subscription_expiry and user_data.subscription_expiry < datetime.utcnow()
-    ):
+    if not user_data or not is_subscription_valid(user_data):
         return redirect(url_for("subscription.subscribe"))
 
     age        = request.args.get("age")
@@ -94,6 +118,8 @@ def search():
     users = query.all()
     return render_template("dashboard.html", users=users)
 
+
+# ── Logout ────────────────────────────────────────────
 
 @user.route("/logout")
 def logout():

@@ -1,85 +1,110 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mangal Vows - Register</title>
-
+<title>Add User - Mangal Vows</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+<style>
+.form-section { margin-bottom: 18px; }
+.form-section label { display:block; font-weight:600; margin-bottom:5px; font-size:14px; }
+.form-section input, .form-section select { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:14px; box-sizing:border-box; }
+.double-input { display:flex; gap:10px; }
+.double-input input { flex:1; }
+.mobile-input { display:flex; }
+.country-code { padding:10px; background:#eee; border:1px solid #ccc; border-right:none; border-radius:8px 0 0 8px; }
+.mobile-input input { border-radius:0 8px 8px 0; border-left:none; flex:1; }
+.error { color:red; text-align:center; margin-bottom:10px; font-size:14px; }
+.back-link { display:block; text-align:center; margin-top:15px; color:#2563eb; text-decoration:none; font-size:14px; }
+</style>
 </head>
-
 <body>
-
 <div class="background-animation"></div>
-
 <div class="portal-card">
 
-<div class="header-bar">
+    <div class="header-bar">
+        <div class="brand">
+            <div class="shield">C</div>
+            <span>MANGAL VOWS</span>
+        </div>
+    </div>
 
-<div class="brand">
-<div class="shield">C</div>
-<span>MANGAL VOWS</span>
+    <h2>Add New User</h2>
+    <p class="subtitle">Register a new matrimony profile</p>
+
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('agent_bp.agent_add_user') }}">
+
+        <div class="form-section">
+            <label>Full Name *</label>
+            <input type="text" name="name" placeholder="Enter full name" required>
+        </div>
+
+        <div class="form-section">
+            <label>Mobile Number *</label>
+            <div class="mobile-input">
+                <span class="country-code">+91</span>
+                <input type="tel" name="phone" placeholder="10 digit number" required>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="Email address">
+        </div>
+
+        <div class="form-section">
+            <label>Age & Gender</label>
+            <div class="double-input">
+                <input type="number" name="age" placeholder="Age">
+                <select name="gender">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <label>Profession</label>
+            <input type="text" name="profession" placeholder="Profession">
+        </div>
+
+        <div class="form-section">
+            <label>Education</label>
+            <input type="text" name="education" placeholder="Highest qualification">
+        </div>
+
+        <div class="form-section">
+            <label>Location</label>
+            <div class="double-input">
+                <input type="text" name="city" placeholder="City">
+                <input type="text" name="state" placeholder="State">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <label>Religion & Community</label>
+            <div class="double-input">
+                <input type="text" name="religion" placeholder="Religion">
+                <input type="text" name="community" placeholder="Community">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <label>Mother Tongue</label>
+            <input type="text" name="mother_tongue" placeholder="Mother tongue">
+        </div>
+
+        <button type="submit" class="secure-btn">Add User</button>
+
+    </form>
+
+    <a href="{{ url_for('agent_bp.agent_dashboard') }}" class="back-link">← Back to Dashboard</a>
+
 </div>
-
-<div class="top-links">
-<a href="/">Login</a>
-</div>
-
-</div>
-
-<h2>Create Your Account</h2>
-<p class="subtitle">Register to access your dashboard</p>
-
-<form method="POST" action="/register">
-
-<div class="row">
-<label>Full Name</label>
-<input type="text" name="name" placeholder="Enter full name" required>
-</div>
-
-<div class="row">
-<label>Mobile Number</label>
-
-<div class="mobile-input">
-<span class="country-code">+91</span>
-<input type="tel" name="phone" placeholder="9876543210" required>
-</div>
-
-</div>
-
-<div class="row">
-<label>Age</label>
-<input type="number" name="age" placeholder="Enter age">
-</div>
-
-<div class="row">
-<label>Height</label>
-<input type="text" name="height" placeholder="Example: 5ft 8in">
-</div>
-
-<div class="row">
-<label>Profession</label>
-<input type="text" name="profession" placeholder="Enter profession">
-</div>
-
-<div class="row">
-<label>Location</label>
-<input type="text" name="location" placeholder="City / State">
-</div>
-
-<button type="submit" class="secure-btn">
-CREATE ACCOUNT
-</button>
-
-</form>
-
-<div class="footer-text">
-Already have an account?<br>
-<a href="/">Login Here</a>
-</div>
-
-</div>
-
 </body>
 </html>

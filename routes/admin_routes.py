@@ -16,13 +16,13 @@ def admin_login():
         admin = Admin.query.filter_by(username=username).first()
 
         if not admin or not bcrypt.check_password_hash(admin.password_hash, password):
-            return render_template("admin_login.html", error="Invalid credentials")
+            return render_template("login.html", error="Invalid admin credentials")
 
         session["admin"] = admin.username
-        session["role"] = "admin"
+        session["role"]  = "admin"
         return redirect(url_for("admin_bp.admin_dashboard"))
 
-    return render_template("admin_login.html")
+    return render_template("login.html")
 
 
 @admin_bp.route("/admin-dashboard")
@@ -39,4 +39,4 @@ def admin_dashboard():
 @admin_bp.route("/admin-logout")
 def admin_logout():
     session.clear()
-    return redirect(url_for("admin_bp.admin_login"))
+    return redirect(url_for("user.home"))

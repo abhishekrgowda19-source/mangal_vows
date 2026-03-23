@@ -19,7 +19,7 @@ db.init_app(app)
 bcrypt = Bcrypt(app)
 
 
-# ── Admin Panel ──────────────────────────────────────
+# ── Flask-Admin Panel ─────────────────────────────────
 
 class SecureModelView(ModelView):
     def is_accessible(self):
@@ -50,7 +50,7 @@ admin_panel.add_view(AgentAdminView(Agent,  db.session, endpoint="agent_admin"))
 admin_panel.add_view(AdminAdminView(Admin,  db.session, endpoint="admin_admin"))
 
 
-# ── Blueprints ───────────────────────────────────────
+# ── Blueprints ────────────────────────────────────────
 
 app.register_blueprint(user)
 app.register_blueprint(subscription)
@@ -58,7 +58,7 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(agent_bp)
 
 
-# ── DB Init ──────────────────────────────────────────
+# ── DB Init ───────────────────────────────────────────
 
 with app.app_context():
     db.create_all()
@@ -72,7 +72,7 @@ with app.app_context():
         db.session.commit()
 
 
-# ── Run ──────────────────────────────────────────────
+# ── Run ───────────────────────────────────────────────
 
 if __name__ == "__main__":
     app.run(debug=Config.DEBUG)
