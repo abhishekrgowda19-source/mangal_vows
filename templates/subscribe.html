@@ -2,54 +2,80 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Activate Subscription - Mangal Vows</title>
+<title>
+  {% if payment_type == "renewal" %}
+    Renew Subscription - Mangal Vows
+  {% else %}
+    Activate Subscription - Mangal Vows
+  {% endif %}
+</title>
+
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 <style>
 .subscription-box {
-    background: #f0f7ff;
-    border: 2px solid #2563eb;
-    border-radius: 12px;
-    padding: 25px;
-    margin: 20px 0;
-    text-align: center;
+    background:#f0f7ff;
+    border:2px solid #2563eb;
+    border-radius:12px;
+    padding:25px;
+    margin:20px 0;
+    text-align:center;
+}
+.subscription-box.renewal {
+    background:#fff7ed;
+    border-color:#f97316;
 }
 .price {
-    font-size: 48px;
-    font-weight: bold;
-    color: #2563eb;
-    margin: 10px 0;
+    font-size:42px;
+    font-weight:bold;
+    color:#2563eb;
+}
+.price.renewal {
+    color:#f97316;
 }
 .price span {
-    font-size: 20px;
-    color: #6b7280;
+    font-size:18px;
+    color:#6b7280;
 }
 .features p {
-    margin: 8px 0;
-    font-size: 14px;
-    color: #374151;
+    margin:8px 0;
+    font-size:14px;
 }
 .error {
-    color: red;
-    text-align: center;
-    margin-top: 10px;
-    font-size: 14px;
+    color:red;
+    text-align:center;
+    margin-top:10px;
 }
-.renewal-link {
-    display: block;
-    text-align: center;
-    margin-top: 15px;
-    font-size: 13px;
-    color: #6b7280;
+.pay-btn {
+    width:100%;
+    padding:12px;
+    background:#2563eb;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
 }
-.renewal-link a {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 600;
+.pay-btn.renewal {
+    background:#f97316;
+}
+.pay-btn:disabled {
+    background:#93c5fd;
+    cursor:not-allowed;
+}
+.note {
+    font-size:12px;
+    color:#6b7280;
+    text-align:center;
+    margin-top:8px;
 }
 </style>
 </head>
+
 <body>
+
 <div class="background-animation"></div>
+
 <div class="portal-card">
 
     <div class="header-bar">
@@ -57,74 +83,135 @@
             <div class="shield">M</div>
             <span>MANGAL VOWS</span>
         </div>
-        <div class="top-links">
-            <a href="{{ url_for('user.home') }}">Login</a>
-            <a href="#">Help</a>
-        </div>
     </div>
 
-    <h2>Activate Your Account</h2>
-    <p class="subtitle">One-time activation to start finding your match</p>
+    {% if payment_type == "renewal" %}
+        <h2>Renew Your Subscription</h2>
+        <p class="subtitle">Continue your access for another 30 days</p>
+    {% else %}
+        <h2>Activate Your Account</h2>
+        <p class="subtitle">Unlock full access to profiles</p>
+    {% endif %}
 
     {% if error %}
     <p class="error">{{ error }}</p>
     {% endif %}
 
+    <!-- RENEWAL PLAN -->
+    {% if payment_type == "renewal" %}
+    <div class="subscription-box renewal">
+        <h3>Renewal Plan</h3>
+        <div class="price renewal">₹100 <span>/ 30 days</span></div>
+        <div class="features">
+            <p>✔ Continue full access</p>
+            <p>✔ View contact details</p>
+            <p>✔ Unlimited browsing</p>
+            <p>✔ Advanced filters</p>
+        </div>
+    </div>
+    <p class="note">⚠ If not renewed, you will need to pay ₹500 to reactivate.</p>
+
+    <!-- INITIAL PLAN -->
+    {% else %}
     <div class="subscription-box">
-        <h3>Premium Activation</h3>
+        <h3>Premium Plan</h3>
         <div class="price">₹500 <span>one time</span></div>
         <div class="features">
             <p>✔ Full access for 30 days</p>
-            <p>✔ Unlimited profile browsing</p>
-            <p>✔ Advanced search filters</p>
             <p>✔ View contact details</p>
-            <p>✔ Renew at just ₹100 after 30 days</p>
+            <p>✔ Unlimited browsing</p>
+            <p>✔ Advanced filters</p>
+            <p>✔ Renewal ₹100/month</p>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Hidden form -->
-    <form method="POST" action="{{ url_for('subscription.verify_payment') }}" id="payment-form">
+    <!-- HIDDEN FORM -->
+    <form method="POST"
+          action="{{ url_for('subscription.verify_payment') }}"
+          id="payment-form">
         <input type="hidden" name="razorpay_order_id"   id="razorpay_order_id">
         <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
         <input type="hidden" name="razorpay_signature"  id="razorpay_signature">
+        <input type="hidden" name="payment_type"        value="{{ payment_type }}">
     </form>
 
-    <button class="secure-btn" onclick="openRazorpay()" style="width:100%">
-        🔐 Pay ₹500 & Activate
+    {% if order_id %}
+    <button class="pay-btn {% if payment_type == 'renewal' %}renewal{% endif %}"
+            id="payBtn"
+            onclick="openRazorpay()">
+        {% if payment_type == "renewal" %}
+            🔄 Pay ₹100 & Renew
+        {% else %}
+            🔐 Pay ₹500 & Activate
+        {% endif %}
     </button>
-
-    <p class="renewal-link">
-        Already subscribed before? 
-        <a href="{{ url_for('subscription.renew') }}">Renew for ₹100 →</a>
-    </p>
+    {% else %}
+    <button class="pay-btn" disabled>
+        ⚠ Payment unavailable — please refresh
+    </button>
+    {% endif %}
 
     <div class="footer-text">
-        Secure payment · Data encrypted · Safe transactions
+        Secure payment · Safe transactions
     </div>
 
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script>
+// @ts-nocheck
 function openRazorpay() {
+
+    var btn = document.getElementById("payBtn");
+    btn.disabled  = true;
+    btn.innerText = "Opening payment...";
+
     var options = {
         key:         "{{ key_id }}",
-        amount:      "{{ amount }}",
+        amount:      {{ amount }},
         currency:    "INR",
         name:        "Mangal Vows",
-        description: "Account Activation - 30 Days",
+        description: "{% if payment_type == 'renewal' %}Subscription Renewal{% else %}Premium Subscription{% endif %}",
         order_id:    "{{ order_id }}",
+
+        prefill: {
+            name:    "{{ session.get('user_name', '') }}",
+            contact: "{{ session.get('user_phone', '') }}",
+            email:   "{{ session.get('user_email', '') }}"
+        },
+
         handler: function(response) {
             document.getElementById("razorpay_order_id").value   = response.razorpay_order_id;
             document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
             document.getElementById("razorpay_signature").value  = response.razorpay_signature;
             document.getElementById("payment-form").submit();
         },
-        theme: { color: "#2563eb" }
+
+        modal: {
+            ondismiss: function() {
+                btn.disabled  = false;
+                btn.innerText = "{% if payment_type == 'renewal' %}🔄 Pay ₹100 & Renew{% else %}🔐 Pay ₹500 & Activate{% endif %}";
+            }
+        },
+
+        theme: {
+            color: "{% if payment_type == 'renewal' %}#f97316{% else %}#2563eb{% endif %}"
+        }
     };
+
     var rzp = new Razorpay(options);
+
+    rzp.on("payment.failed", function(response) {
+        alert("Payment failed: " + response.error.description);
+        btn.disabled  = false;
+        btn.innerText = "{% if payment_type == 'renewal' %}🔄 Pay ₹100 & Renew{% else %}🔐 Pay ₹500 & Activate{% endif %}";
+    });
+
     rzp.open();
 }
 </script>
+
 </body>
 </html>

@@ -7,7 +7,7 @@ class Config:
         "sqlite:///mangal_vows.db"
     )
 
-    # Fix for postgres:// → postgresql://
+    # Fix postgres:// → postgresql://
     if SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
         SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace(
             "postgres://", "postgresql://", 1
@@ -16,7 +16,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # ── Security ─────────────────────────────────────────
-    SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-key"
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
 
     # ── App ──────────────────────────────────────────────
     DEBUG = os.environ.get("DEBUG", "True").lower() == "true"

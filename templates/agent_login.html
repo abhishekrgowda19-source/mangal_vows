@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Agent Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Login - Mangal Vows</title>
 
     <style>
         body {
@@ -25,14 +26,8 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         h2 {
@@ -49,16 +44,24 @@
         input {
             width: 100%;
             padding: 12px;
-            margin: 10px 0;
+            margin: 8px 0 2px;
             border: 1px solid #ddd;
             border-radius: 8px;
             transition: 0.3s;
+            box-sizing: border-box;
         }
 
         input:focus {
             border-color: #4f46e5;
             outline: none;
             box-shadow: 0 0 5px rgba(79,70,229,0.3);
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #aaa;
+            text-align: right;
+            margin: 0 0 8px;
         }
 
         button {
@@ -71,17 +74,21 @@
             cursor: pointer;
             font-weight: bold;
             transition: 0.3s;
+            margin-top: 6px;
         }
 
-        button:hover {
-            background: #4338ca;
+        button:hover { background: #4338ca; }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
         }
 
         .error {
             color: red;
             font-size: 14px;
             margin-top: 10px;
-            min-height: 18px; /* keeps layout stable */
+            min-height: 18px;
         }
 
         .footer {
@@ -98,9 +105,26 @@
     <h2>Mangal Vows</h2>
     <div class="subtitle">Agent Portal</div>
 
-    <form method="POST" action="/agent-login" onsubmit="this.querySelector('button').disabled=true;">
-        <input type="email" name="email" placeholder="Email" required autocomplete="email">
-        <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
+    <form method="POST" action="/agent-login"
+          onsubmit="this.querySelector('button').disabled=true;">
+
+        <!-- ✅ Email: max 30 chars -->
+        <input type="email"
+               name="email"
+               placeholder="Email"
+               maxlength="30"
+               required
+               autocomplete="email">
+        <div class="hint">Max 30 characters</div>
+
+        <!-- ✅ Password: max 15 chars -->
+        <input type="password"
+               name="password"
+               placeholder="Password"
+               maxlength="15"
+               required
+               autocomplete="current-password">
+        <div class="hint">Max 15 characters</div>
 
         <button type="submit">Login</button>
     </form>
@@ -111,9 +135,7 @@
         <p class="error"></p>
     {% endif %}
 
-    <div class="footer">
-        Secure Agent Access
-    </div>
+    <div class="footer">Secure Agent Access</div>
 </div>
 
 </body>

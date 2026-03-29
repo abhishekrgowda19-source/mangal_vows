@@ -2,195 +2,228 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Register - Mangal Vows</title>
+<title>Create Profile - Mangal Vows</title>
+
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 <style>
-.form-section { margin-bottom: 15px; }
-.form-section label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 5px;
-    font-size: 14px;
+.form-section { margin-bottom:15px; }
+.form-section label { font-weight:600; display:block; margin-bottom:5px; }
+.form-section input, .form-section select {
+    width:100%; padding:10px;
+    border-radius:8px; border:1px solid #ccc;
 }
-.form-section input,
-.form-section select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    box-sizing: border-box;
-}
-.double-input { display: flex; gap: 10px; }
-.double-input input,
-.double-input select { flex: 1; }
-.mobile-input { display: flex; }
-.country-code {
-    padding: 10px;
-    background: #eee;
-    border: 1px solid #ccc;
-    border-right: none;
-    border-radius: 8px 0 0 8px;
-    white-space: nowrap;
-}
-.mobile-input input {
-    border-radius: 0 8px 8px 0;
-    border-left: none;
-    flex: 1;
-}
-.section-heading {
-    font-size: 13px;
-    font-weight: 700;
-    color: #2563eb;
-    margin: 18px 0 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 5px;
-}
-.error {
-    color: red;
-    text-align: center;
-    margin-bottom: 10px;
-    font-size: 14px;
-}
-.back-link {
-    display: block;
-    text-align: center;
-    margin-top: 15px;
-    color: #2563eb;
-    text-decoration: none;
-    font-size: 14px;
-}
-.info-box {
-    background: #eff6ff;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 13px;
-    color: #1e40af;
-    margin-bottom: 20px;
-    text-align: center;
-}
+.error-msg { color:red; text-align:center; }
 </style>
 </head>
+
 <body>
-<div class="background-animation"></div>
+
 <div class="portal-card">
+<h2>Create Your Profile</h2>
 
-    <div class="header-bar">
-        <div class="brand">
-            <div class="shield">M</div>
-            <span>MANGAL VOWS</span>
-        </div>
-    </div>
+{% if error %}
+<p class="error-msg">{{ error }}</p>
+{% endif %}
 
-    <h2>Create Your Profile</h2>
-    <p class="subtitle">Register to find your perfect match</p>
+<form method="POST">
 
-    <div class="info-box">
-        💳 After registration you'll be asked to pay ₹500 to activate your account
-    </div>
-
-    {% if error %}
-    <p class="error">{{ error }}</p>
-    {% endif %}
-
-    <form method="POST" action="{{ url_for('user.self_register') }}">
-
-        <!-- Basic -->
-        <div class="section-heading">Basic Info</div>
-
-        <div class="form-section">
-            <label>Full Name *</label>
-            <input type="text" name="name" placeholder="Your full name" required>
-        </div>
-
-        <div class="form-section">
-            <label>Mobile Number *</label>
-            <div class="mobile-input">
-                <span class="country-code">+91</span>
-                <input type="tel" name="phone" placeholder="10 digit number" required>
-            </div>
-        </div>
-
-        <div class="form-section">
-            <label>Email</label>
-            <input type="email" name="email" placeholder="Email address">
-        </div>
-
-        <div class="form-section">
-            <label>Age & Gender</label>
-            <div class="double-input">
-                <input type="number" name="age" placeholder="Age" required>
-                <select name="gender" required>
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="form-section">
-            <label>Height</label>
-            <input type="text" name="height" placeholder="e.g. 5'6">
-        </div>
-
-        <!-- Cultural -->
-        <div class="section-heading">Cultural Info</div>
-
-        <div class="form-section">
-            <label>Religion *</label>
-            <input type="text" name="religion" placeholder="e.g. Hindu, Muslim, Christian" required>
-        </div>
-
-        <div class="form-section">
-            <label>Caste *</label>
-            <input type="text" name="caste" placeholder="e.g. Brahmin, Reddy, Nair" required>
-        </div>
-
-        <div class="form-section">
-            <label>Community</label>
-            <input type="text" name="community" placeholder="e.g. Iyer, Pillai">
-        </div>
-
-        <div class="form-section">
-            <label>Mother Tongue</label>
-            <input type="text" name="mother_tongue" placeholder="e.g. Tamil, Kannada">
-        </div>
-
-        <!-- Professional -->
-        <div class="section-heading">Professional Info</div>
-
-        <div class="form-section">
-            <label>Profession</label>
-            <input type="text" name="profession" placeholder="e.g. Software Engineer">
-        </div>
-
-        <div class="form-section">
-            <label>Education</label>
-            <input type="text" name="education" placeholder="e.g. B.Tech, MBBS">
-        </div>
-
-        <!-- Location -->
-        <div class="section-heading">Location</div>
-
-        <div class="form-section">
-            <label>City & State *</label>
-            <div class="double-input">
-                <input type="text" name="city" placeholder="City" required>
-                <input type="text" name="state" placeholder="State" required>
-            </div>
-        </div>
-
-        <button type="submit" class="secure-btn" style="margin-top:15px;">
-            ✅ Register & Proceed to Payment
-        </button>
-
-    </form>
-
-    <a href="{{ url_for('user.home') }}" class="back-link">← Back to Login</a>
-
+<!-- NAME -->
+<div class="form-section">
+<label>Full Name *</label>
+<input type="text" name="name" maxlength="25" pattern="[A-Za-z ]{2,25}" required>
 </div>
+
+<!-- PHONE -->
+<div class="form-section">
+<label>Phone *</label>
+<input type="text" name="phone" maxlength="10" pattern="[6-9]{1}[0-9]{9}" required>
+</div>
+
+<!-- EMAIL -->
+<div class="form-section">
+<label>Email</label>
+<input type="email" name="email" maxlength="35">
+</div>
+
+<!-- AGE -->
+<div class="form-section">
+<label>Age *</label>
+<input type="number" name="age" min="18" max="60" required>
+</div>
+
+<!-- GENDER -->
+<div class="form-section">
+<label>Gender *</label>
+<select name="gender" required>
+<option value="">Select</option>
+<option value="male">Male</option>
+<option value="female">Female</option>
+<option value="other">Other</option>
+</select>
+</div>
+
+<!-- 🔥 NEW: BIRTH DETAILS -->
+<div class="form-section">
+<label>Birth Place *</label>
+<input type="text" name="birth_place" maxlength="50" required>
+</div>
+
+<div class="form-section">
+<label>Birth Time *</label>
+<input type="time" name="birth_time" required>
+</div>
+
+<!-- HEIGHT -->
+<div class="form-section">
+<label>Height (cm)</label>
+<input type="number" name="height" min="100" max="220">
+</div>
+
+<!-- RELIGION -->
+<div class="form-section">
+<label>Religion *</label>
+<select name="religion" id="religion" required onchange="toggleOtherReligion()">
+<option value="">Select</option>
+<option value="hindu">Hindu</option>
+<option value="muslim">Muslim</option>
+<option value="christian">Christian</option>
+<option value="sikh">Sikh</option>
+<option value="jain">Jain</option>
+<option value="buddhist">Buddhist</option>
+<option value="other">Other</option>
+</select>
+</div>
+
+<div class="form-section" id="otherReligionBox" style="display:none;">
+<label>Specify Religion</label>
+<input type="text" name="other_religion" maxlength="20">
+</div>
+
+<!-- EDUCATION -->
+<div class="form-section">
+<label>Education Level *</label>
+<select name="education" id="eduLevel" required onchange="toggleStream()">
+<option value="">Select</option>
+<option value="sslc">SSLC</option>
+<option value="puc">PUC</option>
+<option value="diploma">Diploma</option>
+<option value="ug">UG</option>
+<option value="pg">PG</option>
+<option value="phd">PhD</option>
+</select>
+</div>
+
+<div class="form-section" id="streamBox" style="display:none;">
+<label>Stream</label>
+<select name="education_stream">
+<option value="">Select</option>
+<option value="engineering">Engineering</option>
+<option value="medical">Medical</option>
+<option value="commerce">Commerce</option>
+<option value="arts">Arts</option>
+<option value="science">Science</option>
+<option value="management">Management</option>
+<option value="law">Law</option>
+<option value="other">Other</option>
+</select>
+</div>
+
+<!-- PROFESSION -->
+<div class="form-section">
+<label>Profession *</label>
+<select name="profession" id="profession" required onchange="toggleOtherProfession()">
+<option value="">Select</option>
+<option value="software engineer">Software Engineer</option>
+<option value="doctor">Doctor</option>
+<option value="teacher">Teacher</option>
+<option value="business">Business</option>
+<option value="government job">Government Job</option>
+<option value="private employee">Private Employee</option>
+<option value="banking">Banking</option>
+<option value="farmer">Farmer</option>
+<option value="self employed">Self Employed</option>
+<option value="student">Student</option>
+<option value="other">Other</option>
+</select>
+</div>
+
+<div class="form-section" id="otherProfessionBox" style="display:none;">
+<label>Specify Profession</label>
+<input type="text" name="other_profession" maxlength="30">
+</div>
+
+<!-- CITY -->
+<div class="form-section">
+<label>City</label>
+<input type="text" name="city" maxlength="25">
+</div>
+
+<!-- STATE -->
+<div class="form-section">
+<label>State *</label>
+<select name="state" required>
+<option value="">Select</option>
+<option value="karnataka">Karnataka</option>
+<option value="tamil nadu">Tamil Nadu</option>
+<option value="kerala">Kerala</option>
+<option value="maharashtra">Maharashtra</option>
+<option value="delhi">Delhi</option>
+<option value="uttar pradesh">Uttar Pradesh</option>
+<option value="telangana">Telangana</option>
+<option value="andhra pradesh">Andhra Pradesh</option>
+<option value="west bengal">West Bengal</option>
+<option value="gujarat">Gujarat</option>
+<option value="rajasthan">Rajasthan</option>
+<option value="punjab">Punjab</option>
+<option value="haryana">Haryana</option>
+<option value="bihar">Bihar</option>
+<option value="odisha">Odisha</option>
+<option value="assam">Assam</option>
+<option value="jharkhand">Jharkhand</option>
+<option value="chhattisgarh">Chhattisgarh</option>
+<option value="himachal pradesh">Himachal Pradesh</option>
+<option value="uttarakhand">Uttarakhand</option>
+<option value="goa">Goa</option>
+<option value="tripura">Tripura</option>
+<option value="manipur">Manipur</option>
+<option value="meghalaya">Meghalaya</option>
+<option value="mizoram">Mizoram</option>
+<option value="nagaland">Nagaland</option>
+<option value="arunachal pradesh">Arunachal Pradesh</option>
+<option value="sikkim">Sikkim</option>
+</select>
+</div>
+
+<!-- PINCODE -->
+<div class="form-section">
+<label>Pincode *</label>
+<input type="text" name="pincode" maxlength="6" pattern="[0-9]{6}" required>
+</div>
+
+<button class="secure-btn">Register</button>
+
+</form>
+</div>
+
+<!-- JS -->
+<script>
+function toggleOtherReligion() {
+    document.getElementById("otherReligionBox").style.display =
+        (document.getElementById("religion").value === "other") ? "block" : "none";
+}
+
+function toggleOtherProfession() {
+    document.getElementById("otherProfessionBox").style.display =
+        (document.getElementById("profession").value === "other") ? "block" : "none";
+}
+
+function toggleStream() {
+    const val = document.getElementById("eduLevel").value;
+    const show = ["ug","pg","diploma","phd"].includes(val);
+    document.getElementById("streamBox").style.display = show ? "block" : "none";
+}
+</script>
+
 </body>
 </html>

@@ -3,55 +3,123 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Report Profile - Mangal Vows</title>
+
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 <style>
 .form-section { margin-bottom:15px; }
-.form-section label { display:block; font-weight:600; margin-bottom:5px; font-size:14px; }
+
+.form-section label {
+    display:block;
+    font-weight:600;
+    margin-bottom:5px;
+    font-size:14px;
+}
+
 .form-section input,
-.form-section textarea { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:14px; box-sizing:border-box; }
-.form-section textarea { resize:vertical; min-height:100px; }
-.reported-box { background:#fee2e2; border-radius:10px; padding:15px; margin-bottom:20px; font-size:14px; }
+.form-section textarea {
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:14px;
+    box-sizing:border-box;
+}
+
+.form-section textarea {
+    resize:vertical;
+    min-height:100px;
+}
+
+.reported-box {
+    background:#fee2e2;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:20px;
+    font-size:14px;
+}
+
+.error {
+    color:red;
+    font-size:13px;
+    margin-bottom:10px;
+}
+
+.back-link {
+    display:block;
+    text-align:center;
+    margin-top:15px;
+    color:#2563eb;
+    font-size:14px;
+}
 </style>
 </head>
+
 <body>
+
 <div class="background-animation"></div>
+
 <div class="portal-card">
-    <div class="header-bar">
-        <div class="brand">
-            <div class="shield">M</div>
-            <span>MANGAL VOWS</span>
-        </div>
+
+<!-- HEADER -->
+<div class="header-bar">
+    <div class="brand">
+        <div class="shield">M</div>
+        <span>MANGAL VOWS</span>
     </div>
-
-    <h2>Report Profile</h2>
-    <p class="subtitle">Report inappropriate or fake profiles</p>
-
-    <div class="reported-box">
-        🚨 Reporting: <b>{{ reported.name }}</b> ({{ reported.phone }})
-    </div>
-
-    <form method="POST">
-        <div class="form-section">
-            <label>Subject *</label>
-            <input type="text" name="subject"
-                   placeholder="e.g. Fake profile, Inappropriate content"
-                   required>
-        </div>
-        <div class="form-section">
-            <label>Description *</label>
-            <textarea name="description"
-                      placeholder="Describe the issue in detail..."
-                      required></textarea>
-        </div>
-        <button type="submit" class="secure-btn" style="background:#ef4444;">
-            🚨 Submit Report
-        </button>
-    </form>
-
-    <a href="{{ url_for('user.dashboard') }}"
-       style="display:block;text-align:center;margin-top:15px;color:#2563eb;font-size:14px;">
-        ← Back to Dashboard
-    </a>
 </div>
+
+<h2>Report Profile</h2>
+<p class="subtitle">Report inappropriate or fake profiles</p>
+
+<!-- REPORTED USER -->
+<div class="reported-box">
+🚨 Reporting:
+<b>
+{{ reported.name if reported else "Unknown" }}
+</b>
+({{ reported.phone if reported else "N/A" }})
+</div>
+
+<!-- ERROR -->
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<!-- FORM -->
+<form method="POST">
+
+<div class="form-section">
+<label>Subject *</label>
+<input type="text"
+       name="subject"
+       maxlength="100"
+       placeholder="e.g. Fake profile, Inappropriate content"
+       required>
+</div>
+
+<div class="form-section">
+<label>Description *</label>
+<textarea name="description"
+          maxlength="500"
+          placeholder="Describe the issue in detail..."
+          required></textarea>
+</div>
+
+<button type="submit"
+        class="secure-btn"
+        style="background:#ef4444;">
+🚨 Submit Report
+</button>
+
+</form>
+
+<!-- BACK -->
+<a href="{{ url_for('user.dashboard') }}" class="back-link">
+← Back to Dashboard
+</a>
+
+</div>
+
 </body>
 </html>

@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 
-# Create database instance
 db = SQLAlchemy()
+bcrypt = Bcrypt()

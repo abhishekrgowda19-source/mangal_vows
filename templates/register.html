@@ -4,135 +4,151 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Add User - Mangal Vows</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 <style>
 .form-section { margin-bottom: 15px; }
 .form-section label { display:block; font-weight:600; margin-bottom:5px; font-size:14px; }
 .form-section input,
-.form-section select { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:14px; box-sizing:border-box; }
+.form-section select {
+    width:100%; padding:10px; border-radius:8px;
+    border:1px solid #ccc; font-size:14px;
+}
 .double-input { display:flex; gap:10px; }
-.double-input input,
-.double-input select { flex:1; }
 .mobile-input { display:flex; }
-.country-code { padding:10px; background:#eee; border:1px solid #ccc; border-right:none; border-radius:8px 0 0 8px; white-space:nowrap; }
-.mobile-input input { border-radius:0 8px 8px 0; border-left:none; flex:1; }
-.error { color:red; text-align:center; margin-bottom:10px; font-size:14px; }
-.section-heading { font-size:13px; font-weight:700; color:#2563eb; margin:18px 0 10px; text-transform:uppercase; letter-spacing:0.5px; }
-.back-link { display:block; text-align:center; margin-top:15px; color:#2563eb; text-decoration:none; font-size:14px; }
+.country-code {
+    padding:10px; background:#eee;
+    border:1px solid #ccc; border-right:none;
+    border-radius:8px 0 0 8px;
+}
+.mobile-input input {
+    border-radius:0 8px 8px 0;
+    border-left:none; flex:1;
+}
+.error { color:red; text-align:center; margin-bottom:10px; }
+.section-heading { font-size:13px; font-weight:700; color:#2563eb; margin:18px 0 10px; }
+.back-link { display:block; text-align:center; margin-top:15px; color:#2563eb; }
 </style>
 </head>
+
 <body>
-<div class="background-animation"></div>
 <div class="portal-card">
 
-    <div class="header-bar">
-        <div class="brand">
-            <div class="shield">M</div>
-            <span>MANGAL VOWS</span>
-        </div>
-    </div>
+<h2>Add New Client</h2>
 
-    <h2>Add New Client</h2>
-    <p class="subtitle">Register a new matrimony profile</p>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
 
-    {% if error %}
-    <p class="error">{{ error }}</p>
-    {% endif %}
+<form method="POST" action="{{ url_for('agent_bp.agent_add_user') }}">
 
-    <form method="POST" action="{{ url_for('agent_bp.agent_add_user') }}">
+<!-- BASIC -->
+<div class="section-heading">Basic Info</div>
 
-        <!-- Basic -->
-        <div class="section-heading">Basic Info</div>
+<div class="form-section">
+<label>Name *</label>
+<input type="text" name="name"
+       pattern="[A-Za-z ]{2,25}" maxlength="25"
+       required>
+</div>
 
-        <div class="form-section">
-            <label>Full Name *</label>
-            <input type="text" name="name" placeholder="Enter full name" required>
-        </div>
+<div class="form-section">
+<label>Phone *</label>
+<div class="mobile-input">
+<span class="country-code">+91</span>
+<input type="tel" name="phone"
+       pattern="[6-9]{1}[0-9]{9}" maxlength="10"
+       required>
+</div>
+</div>
 
-        <div class="form-section">
-            <label>Mobile Number *</label>
-            <div class="mobile-input">
-                <span class="country-code">+91</span>
-                <input type="tel" name="phone" placeholder="10 digit number" required>
-            </div>
-        </div>
+<div class="form-section">
+<label>Email</label>
+<input type="email" name="email" maxlength="35">
+</div>
 
-        <div class="form-section">
-            <label>Email</label>
-            <input type="email" name="email" placeholder="Email address">
-        </div>
+<div class="form-section">
+<label>Age & Gender</label>
+<div class="double-input">
+<input type="number" name="age" min="18" max="60">
 
-        <div class="form-section">
-            <label>Age & Gender</label>
-            <div class="double-input">
-                <input type="number" name="age" placeholder="Age">
-                <select name="gender">
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-        </div>
+<select name="gender">
+<option value="">Select</option>
+<option value="male">Male</option>
+<option value="female">Female</option>
+<option value="other">Other</option>
+</select>
+</div>
+</div>
 
-        <div class="form-section">
-            <label>Height</label>
-            <input type="text" name="height" placeholder="e.g. 5'6">
-        </div>
+<div class="form-section">
+<label>Height (cm)</label>
+<input type="number" name="height" min="100" max="250">
+</div>
 
-        <!-- Cultural -->
-        <div class="section-heading">Cultural Info</div>
+<!-- CULTURE -->
+<div class="section-heading">Cultural Info</div>
 
-        <div class="form-section">
-            <label>Religion</label>
-            <input type="text" name="religion" placeholder="e.g. Hindu, Muslim, Christian">
-        </div>
+<div class="form-section">
+<label>Religion</label>
+<input type="text" name="religion" pattern="[A-Za-z ]{2,25}">
+</div>
 
-        <div class="form-section">
-            <label>Caste ✅</label>
-            <input type="text" name="caste" placeholder="e.g. Brahmin, Reddy, Naidu">
-        </div>
+<div class="form-section">
+<label>Caste</label>
+<input type="text" name="caste" pattern="[A-Za-z ]{2,25}">
+</div>
 
-        <div class="form-section">
-            <label>Community</label>
-            <input type="text" name="community" placeholder="e.g. Iyer, Nair, Pillai">
-        </div>
+<div class="form-section">
+<label>Community</label>
+<input type="text" name="community" pattern="[A-Za-z ]{2,25}">
+</div>
 
-        <div class="form-section">
-            <label>Mother Tongue</label>
-            <input type="text" name="mother_tongue" placeholder="e.g. Tamil, Kannada">
-        </div>
+<div class="form-section">
+<label>Mother Tongue</label>
+<input type="text" name="mother_tongue" pattern="[A-Za-z ]{2,25}">
+</div>
 
-        <!-- Professional -->
-        <div class="section-heading">Professional Info</div>
+<!-- PROFESSIONAL -->
+<div class="section-heading">Professional</div>
 
-        <div class="form-section">
-            <label>Profession</label>
-            <input type="text" name="profession" placeholder="e.g. Software Engineer">
-        </div>
+<div class="form-section">
+<label>Profession</label>
+<input type="text" name="profession" pattern="[A-Za-z ]{2,25}">
+</div>
 
-        <div class="form-section">
-            <label>Education</label>
-            <input type="text" name="education" placeholder="e.g. B.Tech, MBBS">
-        </div>
+<div class="form-section">
+<label>Education</label>
+<input type="text" name="education" pattern="[A-Za-z ]{2,25}">
+</div>
 
-        <!-- Location -->
-        <div class="section-heading">Location</div>
+<!-- LOCATION -->
+<div class="section-heading">Location</div>
 
-        <div class="form-section">
-            <label>City & State</label>
-            <div class="double-input">
-                <input type="text" name="city" placeholder="City">
-                <input type="text" name="state" placeholder="State">
-            </div>
-        </div>
+<div class="form-section">
+<label>City</label>
+<input type="text" name="city" pattern="[A-Za-z ]{2,25}">
+</div>
 
-        <button type="submit" class="secure-btn" style="margin-top:10px;">
-            ✅ Add Client
-        </button>
+<div class="form-section">
+<label>State</label>
+<select name="state">
+<option value="">Select</option>
+<option value="karnataka">Karnataka</option>
+<option value="tamil nadu">Tamil Nadu</option>
+<option value="kerala">Kerala</option>
+<option value="andhra pradesh">Andhra Pradesh</option>
+<option value="telangana">Telangana</option>
+<option value="maharashtra">Maharashtra</option>
+</select>
+</div>
 
-    </form>
+<button class="secure-btn">Add Client</button>
 
-    <a href="{{ url_for('agent_bp.agent_dashboard') }}" class="back-link">← Back to Dashboard</a>
+</form>
+
+<a href="{{ url_for('agent_bp.agent_dashboard') }}" class="back-link">
+← Back
+</a>
 
 </div>
 </body>

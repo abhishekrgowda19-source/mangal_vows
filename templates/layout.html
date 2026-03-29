@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mangal Vows</title>
+</head>
+
+<body>
+
+<div style="display:flex">
+
+    <!-- LEFT SIDEBAR -->
+    <div style="width:220px;background:#111827;color:white;min-height:100vh;padding:20px;">
+        <h3 style="margin-bottom:20px;">Mangal Vows</h3>
+
+        <a href="{{ url_for('user.dashboard') }}" style="color:#9ca3af;display:block;margin:10px 0;">Dashboard</a>
+
+        {% if session.get("role") == "agent" %}
+        <a href="{{ url_for('agent_bp.agent_dashboard') }}" style="color:#9ca3af;display:block;margin:10px 0;">Agent Panel</a>
+        {% endif %}
+
+        <a href="{{ url_for('user.logout') }}" style="color:#9ca3af;display:block;margin:10px 0;">Logout</a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div style="flex:1;padding:20px;">
+
+        <!-- 🔥 TOP BAR (FIXED PROPERLY) -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+
+            <!-- LEFT LOGO -->
+            <div style="display:flex;align-items:center;gap:10px;">
+                <img src="{{ url_for('static', filename='logo.png') }}" width="50">
+                <strong>Mangal Vows</strong>
+            </div>
+
+            <!-- RIGHT BUTTON -->
+            {% if session.get("role") != "admin" %}
+            <a href="/raise-ticket"
+               style="background:#2563eb;color:white;padding:10px 16px;border-radius:8px;text-decoration:none;">
+               🎫 Raise Ticket
+            </a>
+            {% endif %}
+
+        </div>
+
+        <!-- PAGE CONTENT -->
+        {% block content %}{% endblock %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

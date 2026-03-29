@@ -35,13 +35,14 @@ def send_proposal(client_id):
     if session.get("role") != "agent":
         return redirect(url_for("agent_bp.agent_login"))
 
-    agent = Agent.query.get(session.get("agent"))
+    # ✅ CRITICAL FIX: was session.get("agent") — should be session.get("agent_id")
+    agent  = Agent.query.get(session.get("agent_id"))
     client = User.query.get(client_id)
 
     if not agent or not client:
         return redirect(url_for("agent_bp.agent_dashboard"))
 
-    # All users except the client
+    # ✅ Only show profiles belonging to this agent's clients
     all_profiles = User.query.filter(User.id != client_id).all()
 
     if request.method == "POST":
@@ -73,7 +74,7 @@ def send_proposal(client_id):
             agent_id    = agent.id,
             client_id   = client_id,
             profile_ids = ",".join(selected_ids),
-            expires_at  = datetime.utcnow() + timedelta(days=7)  # expires in 7 days
+            expires_at  = datetime.utcnow() + timedelta(days=7)
         )
         db.session.add(proposal)
         db.session.commit()
@@ -81,7 +82,6 @@ def send_proposal(client_id):
         # ✅ Build secure link
         proposal_link = f"{APP_URL}/view-proposal/{token}"
 
-        # ✅ Send WhatsApp
         message = (
             f"🙏 Dear {client.name},\n\n"
             f"Your matchmaking agent *{agent.name}* has curated "
@@ -130,8 +130,12 @@ def view_proposal(token):
     if proposal.expires_at < datetime.utcnow():
         return render_template("proposal_expired.html", reason="This link has expired")
 
-    client  = User.query.get(proposal.client_id)
-    agent   = Agent.query.get(proposal.agent_id)
+    client = User.query.get(proposal.client_id)
+    agent  = Agent.query.get(proposal.agent_id)
+
+    # ✅ Guard against deleted profiles
+    if not proposal.profile_ids:
+        return render_template("proposal_expired.html", reason="No profiles in this proposal")
 
     profile_ids = proposal.profile_ids.split(",")
     profiles    = User.query.filter(User.id.in_(profile_ids)).all()

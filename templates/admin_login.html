@@ -1,118 +1,130 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login - Mangal Vows</title>
 
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #1d2671, #c33764);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    font-family: 'Segoe UI', Arial;
+    background: linear-gradient(135deg, #1d2671, #c33764);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 14px;
-            width: 320px;
-            box-shadow: 0px 15px 40px rgba(0,0,0,0.25);
-            text-align: center;
-            animation: fadeIn 0.6s ease-in-out;
-        }
+.login-box {
+    background: white;
+    padding: 35px;
+    border-radius: 12px;
+    width: 320px;
+    text-align: center;
+}
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+h2 { margin-bottom: 5px; }
 
-        h2 {
-            margin-bottom: 10px;
-            color: #333;
-        }
+.subtitle {
+    font-size: 13px;
+    color: gray;
+    margin-bottom: 20px;
+}
 
-        .subtitle {
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 20px;
-        }
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 2px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
 
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            transition: 0.3s;
-        }
+input:focus {
+    border-color: #c33764;
+    outline: none;
+}
 
-        input:focus {
-            border-color: #c33764;
-            outline: none;
-            box-shadow: 0 0 5px rgba(195,55,100,0.3);
-        }
+.hint {
+    font-size: 11px;
+    color: #aaa;
+    text-align: right;
+    margin: 0 0 8px;
+}
 
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #c33764;
-            border: none;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-        }
+button {
+    width: 100%;
+    padding: 12px;
+    background: #c33764;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 4px;
+}
 
-        button:hover {
-            background: #a82a54;
-        }
+button:hover { background: #a82a54; }
 
-        .error {
-            color: red;
-            font-size: 14px;
-            margin-top: 10px;
-        }
+button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
 
-        .footer {
-            margin-top: 15px;
-            font-size: 12px;
-            color: #777;
-        }
-    </style>
+.error {
+    color: red;
+    font-size: 13px;
+    min-height: 18px;
+    margin-top: 10px;
+}
+
+.footer {
+    margin-top: 15px;
+    font-size: 12px;
+    color: gray;
+}
+</style>
 </head>
 
 <body>
 
 <div class="login-box">
-    <h2>Mangal Vows</h2>
-    <div class="subtitle">Admin Portal</div>
 
-    <form method="POST" action="/admin-login">
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
+<h2>Mangal Vows</h2>
+<div class="subtitle">Admin Portal</div>
 
-        <button type="submit">Login</button>
-    </form>
+<form method="POST" onsubmit="this.querySelector('button').disabled=true;">
 
-    {% if error %}
-        <p class="error">{{ error }}</p>
-    {% else %}
-        <p class="error" style="visibility:hidden;">placeholder</p>
-    {% endif %}
-        
-    <div class="footer">
-        Secure Admin Access
-    </div>
+    <!-- ✅ username: max 15 chars -->
+    <input type="text"
+           name="username"
+           placeholder="Username"
+           maxlength="15"
+           required
+           autocomplete="username">
+    <div class="hint">Max 15 characters</div>
+
+    <!-- ✅ password: max 15 chars -->
+    <input type="password"
+           name="password"
+           placeholder="Password"
+           maxlength="15"
+           required
+           autocomplete="current-password">
+    <div class="hint">Max 15 characters</div>
+
+    <button type="submit">Login</button>
+
+</form>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% else %}
+<p class="error"></p>
+{% endif %}
+
+<div class="footer">Secure Admin Access</div>
+
 </div>
 
 </body>

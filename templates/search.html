@@ -1,34 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search Profiles</title>
+
+<style>
+body {
+    font-family: Arial;
+    background:#f4f6f9;
+    padding:20px;
+}
+
+.form-box {
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+input, select {
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+button {
+    padding:10px;
+    width:100%;
+    background:#2563eb;
+    color:white;
+    border:none;
+    border-radius:8px;
+}
+
+.result {
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
 <h2>Search Profiles</h2>
 
-<form method="GET" action="/search">
+<!-- SEARCH FORM -->
+<div class="form-box">
 
-Age
-<input type="number" name="age">
+<form method="GET" action="{{ url_for('user.dashboard') }}">
 
-Location
+<label>Gender</label>
+<select name="gender">
+    <option value="">Any</option>
+    <option value="male">Male</option>
+    <option value="female">Female</option>
+    <option value="other">Other</option>
+</select>
+
+<label>Age</label>
+<input type="number" name="age" min="18" max="60">
+
+<label>Location</label>
 <input type="text" name="location">
 
-Profession
+<label>Profession</label>
 <input type="text" name="profession">
 
 <button type="submit">Search</button>
 
 </form>
 
-<hr>
+</div>
 
+<!-- RESULTS -->
 <h3>Results</h3>
+
+{% if users %}
 
 {% for user in users %}
 
-<div style="border:1px solid gray; padding:10px; margin:10px">
+<div class="result">
 
-Name: {{ user.name }} <br>
-Age: {{ user.age }} <br>
-Height: {{ user.height }} <br>
-Profession: {{ user.profession }} <br>
-Location: {{ user.location }}
+<b>{{ user.name }}</b><br>
+
+Age: {{ user.age or "N/A" }}<br>
+Height: {{ user.height or "N/A" }}<br>
+Profession: {{ user.profession or "N/A" }}<br>
+Location: {{ user.location or "N/A" }}
 
 </div>
 
 {% endfor %}
+
+{% else %}
+
+<p style="text-align:center;color:gray;">
+No profiles found
+</p>
+
+{% endif %}
+
+</body>
+</html>

@@ -1,314 +1,356 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
-from models import User, Dispute
+from models import User
 from database import db
-from datetime import datetime
+import re
 
 user = Blueprint("user", __name__)
 
 
 def normalize_phone(phone):
-    return ''.join(filter(str.isdigit, phone))[-10:] if phone else ""
+    return ''.join(filter(str.isdigit, phone or ""))[-10:]
 
 
-def get_name3(name):
-    return name[:3].upper() if len(name) >= 3 else name.upper()
+def is_valid_phone(phone):
+    return re.fullmatch(r"[6-9]\d{9}", phone)
 
 
-def is_subscription_valid(user_data):
-    if not user_data.subscription_active:
-        return False
-    if user_data.subscription_expiry and user_data.subscription_expiry < datetime.utcnow():
-        return False
-    return True
+def is_valid_name(name):
+    """Personal user name — up to 50 chars"""
+    return re.fullmatch(r"[A-Za-z ]{2,50}", name)
 
 
-def subscription_redirect(user_data):
-    if not user_data.subscription_expiry:
-        return redirect(url_for("subscription.subscribe"))
-    else:
-        return redirect(url_for("subscription.renew"))
+def is_valid_commercial_name(name):
+    """Commercial user name — max 10 chars"""
+    return re.fullmatch(r"[A-Za-z ]{2,10}", name)
 
 
-# ✅ Compatibility Score Calculator
-def calculate_score(current_user, profile):
-    score = 0
-    if current_user.religion and profile.religion:
-        if current_user.religion.strip().lower() == profile.religion.strip().lower():
-            score += 30
-    if current_user.caste and profile.caste:
-        if current_user.caste.strip().lower() == profile.caste.strip().lower():
-            score += 25
-    if current_user.mother_tongue and profile.mother_tongue:
-        if current_user.mother_tongue.strip().lower() == profile.mother_tongue.strip().lower():
-            score += 15
-    if current_user.age and profile.age:
-        if abs(current_user.age - profile.age) <= 5:
-            score += 15
-    if current_user.state and profile.state:
-        if current_user.state.strip().lower() == profile.state.strip().lower():
-            score += 10
-    if current_user.community and profile.community:
-        if current_user.community.strip().lower() == profile.community.strip().lower():
-            score += 5
-    return score
+def normalize_birth_time(raw):
+    if not raw:
+        return None
+    raw = raw.strip().upper()
+    match = re.fullmatch(r"(1[0-2]|0?[1-9]):([0-5][0-9])\s*(AM|PM)", raw)
+    if not match:
+        return None
+    hour   = int(match.group(1))
+    minute = match.group(2)
+    period = match.group(3)
+    return f"{hour}:{minute} {period}"
 
 
+def is_valid_birth_place(place):
+    return place and re.fullmatch(r"[A-Za-z ,\.]{2,100}", place)
+
+
+# ---------------- HOME ----------------
 @user.route("/")
 def home():
+    return redirect(url_for("user.login"))
+
+
+# ---------------- LOGIN ----------------
+@user.route("/login", methods=["GET", "POST"])
+def login():
+
+    if request.method == "GET":
+        session.clear()
+
+    if request.method == "POST":
+
+        phone    = normalize_phone(request.form.get("phone", ""))
+        login_as = request.form.get("login_as", "").strip()
+
+        if not phone or not is_valid_phone(phone):
+            return render_template("login.html", error="Invalid phone number")
+
+        user_data = User.query.filter_by(phone=phone).first()
+
+        # ---------------- COMMERCIAL LOGIN ----------------
+        if login_as == "commercial":
+
+            if user_data:
+                session["user_id"]    = user_data.id
+                session["role"]       = "user"
+                session["user_type"]  = user_data.user_type
+                session["user_name"]  = user_data.name
+                session["user_phone"] = user_data.phone
+                session["user_email"] = user_data.email or ""
+
+                return redirect(url_for("user.dashboard"))
+
+            return render_template("login.html")
+
+        # ---------------- PERSONAL LOGIN ----------------
+        if login_as == "personal":
+
+            if not user_data:
+                return render_template(
+                    "login.html",
+                    error="Phone not registered. Please register as Personal user."
+                )
+
+            if user_data.user_type != "personal":
+                session["user_id"]    = user_data.id
+                session["role"]       = "user"
+                session["user_type"]  = user_data.user_type
+                session["user_name"]  = user_data.name
+                session["user_phone"] = user_data.phone
+                session["user_email"] = user_data.email or ""
+                return redirect(url_for("user.dashboard"))
+
+            name        = request.form.get("name", "").strip()
+            birth_time  = request.form.get("birth_time", "").strip()
+            birth_place = request.form.get("birth_place", "").strip()
+
+            normalized_input = normalize_birth_time(birth_time)
+
+            if normalized_input is None:
+                return render_template(
+                    "login.html",
+                    error="Invalid birth time format. Use format like 5:30 AM"
+                )
+
+            if (
+                name.lower()                != (user_data.name or "").lower() or
+                normalized_input            != (user_data.birth_time or "") or
+                birth_place.lower().strip() != (user_data.birth_place or "").lower().strip()
+            ):
+                return render_template("login.html", error="Invalid credentials")
+
+            session["user_id"]    = user_data.id
+            session["role"]       = "user"
+            session["user_type"]  = user_data.user_type
+            session["user_name"]  = user_data.name
+            session["user_phone"] = user_data.phone
+            session["user_email"] = user_data.email or ""
+
+            if not user_data.subscription_active:
+                if user_data.needs_renewal():
+                    return redirect(url_for("subscription.renew"))
+                return redirect(url_for("subscription.subscribe"))
+
+            return redirect(url_for("user.dashboard"))
+
     return render_template("login.html")
 
 
-# ── Commercial Login ──────────────────────────────────
-
-@user.route("/login", methods=["POST"])
-def login():
-    name3 = request.form.get("name3", "").strip().upper()
-    phone = normalize_phone(request.form.get("phone"))
-
-    user_data = User.query.filter_by(phone=phone).first()
-
-    if not user_data or get_name3(user_data.name) != name3:
-        return render_template("login.html", error="Invalid credentials")
-
-    session["user"] = user_data.phone
-    session["role"] = "user"
-
-    if not is_subscription_valid(user_data):
-        return subscription_redirect(user_data)
-
-    return redirect(url_for("user.dashboard"))
-
-
-# ── Personal Login ────────────────────────────────────
-
-@user.route("/personal-login", methods=["POST"])
-def personal_login():
-    name  = request.form.get("name", "").strip()
-    phone = normalize_phone(request.form.get("phone"))
-
-    user_data = User.query.filter_by(phone=phone).first()
-
-    if not user_data or user_data.name.strip().lower() != name.lower():
-        return render_template("login.html", error="Invalid credentials")
-
-    session["user"] = user_data.phone
-    session["role"] = "user"
-
-    if not is_subscription_valid(user_data):
-        return subscription_redirect(user_data)
-
-    return redirect(url_for("user.dashboard"))
-
-
-# ── Self Registration ─────────────────────────────────
-
+# ---------------- PERSONAL REGISTER ----------------
 @user.route("/self-register", methods=["GET", "POST"])
 def self_register():
-    if request.method == "POST":
-        name          = request.form.get("name", "").strip()
-        phone         = normalize_phone(request.form.get("phone", ""))
-        email         = request.form.get("email", "").strip()
-        age           = request.form.get("age")
-        gender        = request.form.get("gender", "").strip()
-        height        = request.form.get("height", "").strip()
-        religion      = request.form.get("religion", "").strip()
-        caste         = request.form.get("caste", "").strip()
-        community     = request.form.get("community", "").strip()
-        mother_tongue = request.form.get("mother_tongue", "").strip()
-        profession    = request.form.get("profession", "").strip()
-        education     = request.form.get("education", "").strip()
-        city          = request.form.get("city", "").strip()
-        state         = request.form.get("state", "").strip()
 
-        if not name or not phone:
-            return render_template("self_register.html", error="Name and phone are required")
+    if request.method == "POST":
+
+        name        = request.form.get("name", "").strip()
+        phone       = normalize_phone(request.form.get("phone", ""))
+        email       = request.form.get("email", "").strip() or None
+        age         = request.form.get("age")
+        gender      = request.form.get("gender", "")
+        city        = request.form.get("city", "").strip()
+        state       = request.form.get("state", "").strip()
+        birth_place = request.form.get("birth_place", "").strip()
+        birth_time  = request.form.get("birth_time", "").strip()
+
+        if not is_valid_phone(phone):
+            return render_template("self_register.html", error="Invalid phone number")
+
+        if not is_valid_name(name):
+            return render_template("self_register.html", error="Name must be 2-50 letters only")
+
+        normalized_time = normalize_birth_time(birth_time)
+        if not normalized_time:
+            return render_template(
+                "self_register.html",
+                error="Invalid birth time. Use format like 5:30 AM or 11:45 PM"
+            )
+
+        if not is_valid_birth_place(birth_place):
+            return render_template(
+                "self_register.html",
+                error="Invalid birth place. Only letters, spaces, commas allowed"
+            )
+
+        if not age or not age.isdigit() or not (18 <= int(age) <= 80):
+            return render_template("self_register.html", error="Age must be between 18 and 80")
 
         if User.query.filter_by(phone=phone).first():
-            return render_template("self_register.html",
-                                   error="Phone already registered! Please login instead.")
+            return render_template("self_register.html", error="User already exists")
 
         new_user = User(
-            name=name, phone=phone, email=email,
-            age=int(age) if age else None,
-            gender=gender, height=height,
-            religion=religion, caste=caste,
-            community=community, mother_tongue=mother_tongue,
-            profession=profession, education=education,
-            city=city, state=state,
-            location=f"{city}, {state}".strip(", "),
-            agent_id=None
+            name=name,
+            phone=phone,
+            email=email,
+            age=int(age),
+            gender=gender,
+            city=city,
+            state=state,
+            location=f"{city}, {state}",
+            birth_place=birth_place,
+            birth_time=normalized_time,
+            user_type="personal",
+            subscription_active=False
         )
+
         db.session.add(new_user)
         db.session.commit()
 
-        session["user"] = new_user.phone
-        session["role"] = "user"
+        session.clear()
+        session["user_id"]    = new_user.id
+        session["role"]       = "user"
+        session["user_type"]  = "personal"
+        session["user_name"]  = new_user.name
+        session["user_phone"] = new_user.phone
+        session["user_email"] = new_user.email or ""
 
         return redirect(url_for("subscription.subscribe"))
 
     return render_template("self_register.html")
 
 
-# ── Dashboard ─────────────────────────────────────────
+# ---------------- COMMERCIAL REGISTER ----------------
+@user.route("/commercial-register", methods=["POST"])
+def commercial_register():
 
+    name  = request.form.get("name", "").strip()
+    phone = normalize_phone(request.form.get("phone", ""))
+
+    if not name or not is_valid_commercial_name(name):
+        return render_template(
+            "login.html",
+            error="Name must be 2–10 letters only for commercial login"
+        )
+
+    if not is_valid_phone(phone):
+        return render_template("login.html", error="Invalid phone number")
+
+    existing = User.query.filter_by(phone=phone).first()
+
+    if existing:
+        if existing.user_type == "commercial":
+            if existing.name != name:
+                existing.name = name
+                db.session.commit()
+
+            session["user_id"]    = existing.id
+            session["role"]       = "user"
+            session["user_type"]  = "commercial"
+            session["user_name"]  = existing.name
+            session["user_phone"] = existing.phone
+            session["user_email"] = existing.email or ""
+
+            return redirect(url_for("user.dashboard"))
+
+        return render_template(
+            "login.html",
+            error="This phone is already registered as a Personal user."
+        )
+
+    # ✅ FIX: email=None explicitly — avoids unique constraint conflict
+    # Wrapped in try/except to catch any unexpected DB errors
+    try:
+        new_user = User(
+            name=name,
+            phone=phone,
+            email=None,
+            user_type="commercial",
+            subscription_active=False
+        )
+
+        db.session.add(new_user)
+        db.session.commit()
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"[ERROR] commercial_register failed: {e}")
+        return render_template(
+            "login.html",
+            error="Registration failed. Please try again."
+        )
+
+    session.clear()
+    session["user_id"]    = new_user.id
+    session["role"]       = "user"
+    session["user_type"]  = "commercial"
+    session["user_name"]  = new_user.name
+    session["user_phone"] = new_user.phone
+    session["user_email"] = ""
+
+    return redirect(url_for("user.dashboard"))
+
+
+# ---------------- DASHBOARD ----------------
 @user.route("/dashboard")
 def dashboard():
+
     if session.get("role") != "user":
-        return redirect(url_for("user.home"))
+        return redirect(url_for("user.login"))
 
-    user_data = User.query.filter_by(phone=session.get("user")).first()
+    user_data = User.query.get(session["user_id"])
+
     if not user_data:
-        return redirect(url_for("user.home"))
+        session.clear()
+        return redirect(url_for("user.login"))
 
-    if not is_subscription_valid(user_data):
-        return subscription_redirect(user_data)
+    session["user_type"] = user_data.user_type
 
-    return render_template("dashboard.html", user=user_data)
+    if user_data.user_type == "personal" and not user_data.subscription_active:
+        if user_data.needs_renewal():
+            return redirect(url_for("subscription.renew"))
+        return redirect(url_for("subscription.subscribe"))
 
+    viewer_type = user_data.user_type
+    viewer_sub  = user_data.subscription_active
 
-# ── Search with Compatibility Score ──────────────────
+    search        = request.args.get("search", "").strip()
+    gender        = request.args.get("gender", "").strip()
+    age_min       = request.args.get("age_min", "").strip()
+    age_max       = request.args.get("age_max", "").strip()
+    community     = request.args.get("community", "").strip()
+    mother_tongue = request.args.get("mother_tongue", "").strip()
+    profession    = request.args.get("profession", "").strip()
+    city          = request.args.get("city", "").strip()
+    religion      = request.args.get("religion", "").strip()
 
-@user.route("/search")
-def search():
-    if session.get("role") != "user":
-        return redirect(url_for("user.home"))
+    query = User.query.filter(User.id != user_data.id)
 
-    user_data = User.query.filter_by(phone=session.get("user")).first()
-    if not user_data:
-        return redirect(url_for("user.home"))
-
-    if not is_subscription_valid(user_data):
-        return subscription_redirect(user_data)
-
-    age_min       = request.args.get("age_min")
-    age_max       = request.args.get("age_max")
-    height        = request.args.get("height")
-    location      = request.args.get("location")
-    profession    = request.args.get("profession")
-    community     = request.args.get("community")
-    mother_tongue = request.args.get("mother_tongue")
-    religion      = request.args.get("religion")
-    caste         = request.args.get("caste")
-    gender        = request.args.get("gender")
-
-    query = User.query.filter(User.phone != user_data.phone)
-
+    if search:
+        query = query.filter(User.name.ilike(f"%{search}%"))
+    if gender:
+        query = query.filter(User.gender == gender)
     if age_min:
-        try: query = query.filter(User.age >= int(age_min))
-        except ValueError: pass
+        query = query.filter(User.age >= int(age_min))
     if age_max:
-        try: query = query.filter(User.age <= int(age_max))
-        except ValueError: pass
-    if height:
-        query = query.filter(User.height.ilike(f"%{height}%"))
-    if location:
-        query = query.filter(User.location.ilike(f"%{location}%"))
-    if profession:
-        query = query.filter(User.profession.ilike(f"%{profession}%"))
+        query = query.filter(User.age <= int(age_max))
     if community:
         query = query.filter(User.community.ilike(f"%{community}%"))
     if mother_tongue:
         query = query.filter(User.mother_tongue.ilike(f"%{mother_tongue}%"))
+    if profession:
+        query = query.filter(User.profession.ilike(f"%{profession}%"))
+    if city:
+        query = query.filter(User.city.ilike(f"%{city}%"))
     if religion:
         query = query.filter(User.religion.ilike(f"%{religion}%"))
-    if caste:
-        query = query.filter(User.caste.ilike(f"%{caste}%"))
-    if gender:
-        query = query.filter(User.gender == gender)
 
-    raw_users = query.all()
+    users = query.all()
 
-    scored_users = []
-    for u in raw_users:
-        score = calculate_score(user_data, u)
-        scored_users.append((u, score))
-
-    scored_users.sort(key=lambda x: x[1], reverse=True)
+    safe_users = [
+        u.to_dict(
+            viewer_subscription_active=viewer_sub,
+            viewer_type=viewer_type
+        )
+        for u in users
+    ]
 
     return render_template(
         "dashboard.html",
-        users=scored_users,
+        users=safe_users,
         user=user_data,
-        scored=True
+        viewer_type=viewer_type,
+        subscription_active=viewer_sub
     )
 
 
-# ── Report Profile ────────────────────────────────────
-
-@user.route("/report/<reported_id>", methods=["GET", "POST"])
-def report_profile(reported_id):
-    if session.get("role") != "user":
-        return redirect(url_for("user.home"))
-
-    user_data = User.query.filter_by(phone=session.get("user")).first()
-    reported  = User.query.get(reported_id)
-
-    if not user_data or not reported:
-        return redirect(url_for("user.dashboard"))
-
-    if request.method == "POST":
-        dispute = Dispute(
-            raised_by_user = user_data.id,
-            against        = reported_id,
-            ticket_type    = "profile_report",
-            subject        = request.form.get("subject", "").strip(),
-            description    = request.form.get("description", "").strip(),
-            status         = "open"
-        )
-        db.session.add(dispute)
-        db.session.commit()
-        return redirect(url_for("user.dashboard"))
-
-    return render_template("report.html", reported=reported)
-
-
-# ── Raise Ticket ──────────────────────────────────────
-
-@user.route("/raise-ticket", methods=["GET", "POST"])
-def raise_ticket():
-    if session.get("role") != "user":
-        return redirect(url_for("user.home"))
-
-    user_data = User.query.filter_by(phone=session.get("user")).first()
-    if not user_data:
-        return redirect(url_for("user.home"))
-
-    if request.method == "POST":
-        dispute = Dispute(
-            raised_by_user = user_data.id,
-            ticket_type    = request.form.get("ticket_type", "general"),
-            subject        = request.form.get("subject", "").strip(),
-            description    = request.form.get("description", "").strip(),
-            status         = "open"
-        )
-        db.session.add(dispute)
-        db.session.commit()
-        return redirect(url_for("user.my_tickets"))
-
-    return render_template("raise_ticket.html", user=user_data)
-
-
-# ── My Tickets ────────────────────────────────────────
-
-@user.route("/my-tickets")
-def my_tickets():
-    if session.get("role") != "user":
-        return redirect(url_for("user.home"))
-
-    user_data = User.query.filter_by(phone=session.get("user")).first()
-    if not user_data:
-        return redirect(url_for("user.home"))
-
-    tickets = Dispute.query.filter_by(
-        raised_by_user=user_data.id
-    ).order_by(Dispute.created_at.desc()).all()
-
-    return render_template("my_tickets.html", tickets=tickets, user=user_data)
-
-
-# ── Logout ────────────────────────────────────────────
-
+# ---------------- LOGOUT ----------------
 @user.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("user.home"))
+    return redirect(url_for("user.login"))
