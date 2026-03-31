@@ -1,6 +1,7 @@
 {
   "name": "Mangal Vows",
   "short_name": "MangalVows",
+  "description": "Mangal Vows - Wedding Services Platform",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
