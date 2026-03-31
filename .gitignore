@@ -6,3 +6,7 @@ package.json
 capacitor.config.json
 mangal_vows_app/
 *.dex
+venv/
+__pycache__/
+*.pyc
+.env
