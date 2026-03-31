@@ -1,7 +1,8 @@
-__pycache__/
-*.pyc
-*.db
-.env
-instance/
-.DS_Store
-.env
+node_modules/
+android/
+www/
+package-lock.json
+package.json
+capacitor.config.json
+mangal_vows_app/
+*.dex

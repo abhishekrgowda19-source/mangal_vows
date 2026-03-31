@@ -3,6 +3,14 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mangal Vows</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#d4a017">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js');
+  }
+</script>
 </head>
 
 <body>
@@ -25,7 +33,7 @@
     <!-- MAIN CONTENT -->
     <div style="flex:1;padding:20px;">
 
-        <!-- 🔥 TOP BAR (FIXED PROPERLY) -->
+        <!-- TOP BAR -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
 
             <!-- LEFT LOGO -->
