@@ -3,9 +3,14 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mangal Vows Portal</title>
-
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#d4a017">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
   <style>
     .role-tabs { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
     .role-tabs button { padding: 10px 18px; border: none; border-radius: 20px; background: #e5e7eb; cursor: pointer; font-weight: 600; }
@@ -25,12 +30,10 @@
     .error-msg { color: red; text-align: center; font-size: 13px; margin: 8px 0; min-height: 18px; }
     .switch-buttons button { padding: 8px 20px; border-radius: 20px; border: 2px solid #2563eb; background: white; color: #2563eb; cursor: pointer; font-weight: 600; }
     .switch-buttons button.active { background: #2563eb; color: white; }
-
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .logo-box { display: flex; align-items: center; gap: 10px; font-weight: bold; }
     .ticket-btn { background: #2563eb; color: white; padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 13px; }
     .info-box { background: #eff6ff; border: 1px solid #2563eb; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #1d4ed8; margin-bottom: 14px; }
-
     .birth-time-row { display: flex; gap: 8px; align-items: center; }
     .birth-time-row select { flex: 1; padding: 10px 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; background: white; cursor: pointer; appearance: auto; }
     .birth-time-sep { font-size: 18px; font-weight: 700; color: #374151; margin-bottom: 2px; }
@@ -53,7 +56,6 @@
 
   <h2>Portal Login</h2>
 
-  <!-- ✅ Single error message shown on this page for ALL panels -->
   <p class="error-msg">{{ error or "" }}</p>
 
   <!-- ROLE TABS -->
@@ -63,9 +65,8 @@
     <button id="tabAdmin" onclick="showRole('admin')">Admin</button>
   </div>
 
-  <!-- ═══════════════ USER PANEL ═══════════════ -->
+  <!-- USER PANEL -->
   <div id="userPanel">
-
     <div class="switch-buttons" style="margin-top:16px;">
       <button id="btnCommercial" onclick="showCommercial()" class="active">Commercial</button>
       <button id="btnPersonal"   onclick="showPersonal()">Personal</button>
@@ -115,7 +116,6 @@
           <form method="POST" action="{{ url_for('user.login') }}" onsubmit="assembleBirthTime(event)">
             <input type="hidden" name="login_as" value="personal">
             <input type="hidden" name="birth_time" id="birth_time_hidden">
-
             <div class="row">
               <label>Phone Number</label>
               <div class="mobile-input">
@@ -169,9 +169,8 @@
     </div>
   </div>
 
-  <!-- ═══════════════ AGENT PANEL ═══════════════ -->
+  <!-- AGENT PANEL -->
   <div id="agentPanel" style="display:none;">
-    <!-- ✅ Posts to new unified route that returns errors to THIS page -->
     <form method="POST" action="{{ url_for('agent_bp.agent_login_portal') }}" style="padding:20px;">
       <div class="row">
         <label>Email</label>
@@ -190,9 +189,8 @@
     </form>
   </div>
 
-  <!-- ═══════════════ ADMIN PANEL ═══════════════ -->
+  <!-- ADMIN PANEL -->
   <div id="adminPanel" style="display:none;">
-    <!-- ✅ Posts to new unified route that returns errors to THIS page -->
     <form method="POST" action="{{ url_for('admin_bp.admin_login_portal') }}" style="padding:20px;">
       <div class="row">
         <label>Username</label>
@@ -265,7 +263,6 @@
   }
 
   window.onload = () => {
-    // ✅ If error came from agent/admin login, reopen correct panel
     const role = "{{ active_role or '' }}" || localStorage.getItem("activeRole") || "user";
     const tab  = localStorage.getItem("activeTab") || "commercial";
 
