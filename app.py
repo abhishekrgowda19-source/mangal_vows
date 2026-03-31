@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, redirect, session, url_for
+from flask import Flask, redirect, session, url_for, send_from_directory
 from config import Config
 from database import db, bcrypt
 from models import User, Agent, Admin
@@ -59,6 +59,15 @@ def create_app():
     app.register_blueprint(proposal_bp)
     app.register_blueprint(ticket_bp)
 
+    # ── PWA ROUTES ─────────────────────────
+    @app.route('/manifest.json')
+    def manifest():
+        return send_from_directory('static', 'manifest.json')
+
+    @app.route('/sw.js')
+    def service_worker():
+        return send_from_directory('static', 'sw.js')
+
     # ── SECURITY HEADERS ─────────────────────────
     @app.after_request
     def add_security_headers(response):
@@ -88,7 +97,7 @@ def create_app():
         column_list = (
             "name",
             "phone",
-            "email",              # ✅ NEW — admin can now see email in Flask Admin too
+            "email",
             "city",
             "birth_place",
             "birth_time",
