@@ -15,12 +15,10 @@ def is_valid_phone(phone):
 
 
 def is_valid_name(name):
-    """Personal user name — up to 50 chars"""
     return re.fullmatch(r"[A-Za-z ]{2,50}", name)
 
 
 def is_valid_commercial_name(name):
-    """Commercial user name — max 10 chars"""
     return re.fullmatch(r"[A-Za-z ]{2,10}", name)
 
 
@@ -39,6 +37,58 @@ def normalize_birth_time(raw):
 
 def is_valid_birth_place(place):
     return place and re.fullmatch(r"[A-Za-z ,\.]{2,100}", place)
+
+
+# ── AI SMART MATCH SCORING ──────────────────────────────
+def calculate_match_score(u, gender, age_min, age_max, community,
+                           mother_tongue, profession, city, religion):
+    score = 0
+    total = 0
+
+    if gender:
+        total += 20
+        if u.get("gender", "").lower() == gender.lower():
+            score += 20
+
+    if age_min or age_max:
+        total += 20
+        age = u.get("age") or 0
+        min_ok = (int(age_min) <= age) if age_min else True
+        max_ok = (age <= int(age_max)) if age_max else True
+        if min_ok and max_ok:
+            score += 20
+        elif min_ok or max_ok:
+            score += 10  # partial age match
+
+    if religion:
+        total += 15
+        if religion.lower() in (u.get("religion") or "").lower():
+            score += 15
+
+    if community:
+        total += 15
+        if community.lower() in (u.get("community") or "").lower():
+            score += 15
+
+    if mother_tongue:
+        total += 10
+        if mother_tongue.lower() in (u.get("mother_tongue") or "").lower():
+            score += 10
+
+    if city:
+        total += 10
+        if city.lower() in (u.get("city") or "").lower():
+            score += 10
+
+    if profession:
+        total += 10
+        if profession.lower() in (u.get("profession") or "").lower():
+            score += 10
+
+    if total == 0:
+        return 100  # no filters = show all at 100%
+
+    return round((score / total) * 100)
 
 
 # ---------------- HOME ----------------
@@ -243,8 +293,6 @@ def commercial_register():
             error="This phone is already registered as a Personal user."
         )
 
-    # ✅ FIX: email=None explicitly — avoids unique constraint conflict
-    # Wrapped in try/except to catch any unexpected DB errors
     try:
         new_user = User(
             name=name,
@@ -309,43 +357,49 @@ def dashboard():
     city          = request.args.get("city", "").strip()
     religion      = request.args.get("religion", "").strip()
 
+    # ── Check if any filter is applied ──
+    filters_applied = any([gender, age_min, age_max, community,
+                            mother_tongue, profession, city, religion])
+
     query = User.query.filter(User.id != user_data.id)
 
+    # ── Name search is always exact filter ──
     if search:
         query = query.filter(User.name.ilike(f"%{search}%"))
-    if gender:
-        query = query.filter(User.gender == gender)
-    if age_min:
-        query = query.filter(User.age >= int(age_min))
-    if age_max:
-        query = query.filter(User.age <= int(age_max))
-    if community:
-        query = query.filter(User.community.ilike(f"%{community}%"))
-    if mother_tongue:
-        query = query.filter(User.mother_tongue.ilike(f"%{mother_tongue}%"))
-    if profession:
-        query = query.filter(User.profession.ilike(f"%{profession}%"))
-    if city:
-        query = query.filter(User.city.ilike(f"%{city}%"))
-    if religion:
-        query = query.filter(User.religion.ilike(f"%{religion}%"))
 
     users = query.all()
 
-    safe_users = [
-        u.to_dict(
+    safe_users = []
+    for u in users:
+        u_dict = u.to_dict(
             viewer_subscription_active=viewer_sub,
             viewer_type=viewer_type
         )
-        for u in users
-    ]
+
+        # ── Add AI match score ──
+        if filters_applied:
+            u_dict["match_score"] = calculate_match_score(
+                u_dict, gender, age_min, age_max,
+                community, mother_tongue, profession, city, religion
+            )
+        else:
+            u_dict["match_score"] = None
+
+        safe_users.append(u_dict)
+
+    # ── Sort by match score if filters applied ──
+    if filters_applied:
+        safe_users = sorted(safe_users, key=lambda x: x["match_score"], reverse=True)
+        # ── Only show profiles with at least 30% match ──
+        safe_users = [u for u in safe_users if u["match_score"] >= 30]
 
     return render_template(
         "dashboard.html",
         users=safe_users,
         user=user_data,
         viewer_type=viewer_type,
-        subscription_active=viewer_sub
+        subscription_active=viewer_sub,
+        filters_applied=filters_applied
     )
 
 
