@@ -1,6 +1,11 @@
 import os
 from dotenv import load_dotenv
-load_dotenv()
+
+# ✅ Explicitly load .env from the same directory as app.py
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+
+# ✅ Diagnostic — remove this after confirming it works
+print(">>> DATABASE_URL:", os.getenv("DATABASE_URL"))
 
 from flask import Flask, redirect, session, url_for, send_from_directory
 from config import Config
@@ -67,6 +72,50 @@ def create_app():
     @app.route('/sw.js')
     def service_worker():
         return send_from_directory('static', 'sw.js')
+
+    # ── OFFLINE PAGE ─────────────────────────
+    @app.route('/offline')
+    def offline():
+        return '''
+        <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Offline - Mangal Vows</title>
+            <style>
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body {
+                    font-family: sans-serif;
+                    text-align: center;
+                    padding: 60px 20px;
+                    background: #111827;
+                    color: white;
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .emoji { font-size: 64px; margin-bottom: 20px; }
+                h2 { color: #d4a017; font-size: 24px; margin-bottom: 12px; }
+                p { color: #9ca3af; margin-bottom: 24px; font-size: 15px; }
+                a {
+                    background: #d4a017;
+                    color: #111827;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: bold;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="emoji">📵</div>
+            <h2>You are offline</h2>
+            <p>Please check your internet connection and try again.</p>
+            <a href="/">Try Again</a>
+        </body>
+        </html>
+        '''
 
     # ── SECURITY HEADERS ─────────────────────────
     @app.after_request
