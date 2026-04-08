@@ -43,9 +43,11 @@ def login_required(role=None):
 
 
 # ── CREATE APP ─────────────────────────
+from routes.api_routes import api_bp
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.register_blueprint(api_bp)
 
     if not os.environ.get("SECRET_KEY"):
         raise ValueError("SECRET_KEY environment variable is required")
